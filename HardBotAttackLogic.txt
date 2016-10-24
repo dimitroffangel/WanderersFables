@@ -1,0 +1,6 @@
+1) if user has no minions attack the player
+2) if there is a minion:
+    a) check is player lethal by:
+        - (calculating bot damage on field, mobs with charge in hand, mobs that give 
+        charge or strength, spells) minus (user taunts, defences)
+    b) make a priority array for the player cards on board including priority for the user      character

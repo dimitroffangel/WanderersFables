@@ -1,0 +1,24 @@
+class variations are:
+1.  Hunter: Asbrand Shadowbrace,
+2.  Elementalist: Xorag Stormreaver,
+3.  Theif: brat mi tam si,
+4.  Engineer: brat mi tam si,
+5.  Necromancer: brat mi tam si,
+6.  Guardian: brat mi tam si,
+7.  Revenant: somebody,
+8.  Mesmer: somebody
+    
+    
+Short hand, I think that each class can have masteries, and depending on the points you have invested on the specified skill tree, you will earn spells or minions
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!1 LISTEN
+Elem... 1) Fire: A Variaty of mage and shaman
+        2) Water: Summoning healing minions and healing spells
+        3) Earth: Taunts, monsters that deal damage on a last hit by 'em minion (inflict damage)
+        4) Air: Windfury, Chance of dodging enemy attack, immune to enemy champion's spells, blocking barriers that stop the enemies from attack the player
+        
+Hunter... 1) Trap master,
+          2) Wilderness Survival- taunts, swarm of animals, poison...
+          3) Skimrishing
+          4) Markmanship

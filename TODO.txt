@@ -1,0 +1,20 @@
+1.$ after playing a card update the hand-> done
+2.$ allow minions to attack themselves and the enemy hero -> done
+4.$ end turn -> done
+5.$ after playing a card delete the last field -> done
+6.! implement enemy inteligence -> currently: easy and normal done, working on hard
+7.S math.random to decide who first -> done
+8.$ draw a line beneath the card's name and a wall between attack and defence -> done
+9.$ press ctrl + s and see card description -> done
+10.$ add mana to cards and to both battlers -> done
+11.! add class variations: until level 10 you are a basic of your class after that there are (at least I hope) big differences in your character gameplay and masteries
+12.$ remove the killed creatures after the batte between 'em -> done
+13$. if player clicks escape while in game ask him if he is sure if he is then he loses the game -> done
+
+14.crafting system->for the cards and unlocking new mobs' spells in case you agree with 16
+15.$ the block: the mob is attacked if its health is the same as m_x then block has not been used;  otherwise take a normal damage. Aka all boons are ->done
+16. think about each mob to have its spells and your mana decreases with their use  -> like upgrades in hearth of the swarm
+17.$ shuffle enemy cards -> done
+18.$ go through the code and delete repetitions again!!!!!->done
+19.$ go back to the kamikazeto99 -> done
+20.$ add battlecries->done
