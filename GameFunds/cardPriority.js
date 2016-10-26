@@ -73,13 +73,17 @@ exports.aggroCardLogic = function(cardToAttack){
         }
         
         else if(playerTauntsOnField == 0){
+            // defineEnemyCards has the cards that must be eliminated when you are                       playing aggro
             var result = defineEnemyCard(currentField.card);
             
+            ctx.point(width - 20, 3, result + ' Aggro');
+            // attack the enemy hero
             if(result == 0)
                 continue;
             
             attackPriority.push({field:currentField, cardPriority: result});
         }
+
         
     }
     bubbleSort(attackPriority,0, attackPriority.length);

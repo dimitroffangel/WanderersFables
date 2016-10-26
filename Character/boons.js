@@ -170,8 +170,6 @@ exports.gameActions = function(){
             var fieldToSwap = enemyFieldVectors[cursorIndex], 
                 defence = fieldToSwap.card.defence;
             
-            ctx.point(width - 20, 3, defence + ' _mamaWAke');
-            
             fieldToSwap.card.defence = fieldToSwap.card.attack;
             fieldToSwap.card.attack = defence;
             

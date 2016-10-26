@@ -271,30 +271,32 @@ exports.showSpells = function(key){
         drawBoard();
         this.eachFrame();
         return;
-    }     ctx.point(0, 10, key.name);
-       if(key.name == 'up' && indexOnSpell > 0)
+    }  
+    
+    if(key.name == 'up' && indexOnSpell > 0)
         indexOnSpell -= 1;
     
     else if(key.name == 'down' && indexOnSpell < length - 1)
         indexOnSpell +=1; 
-    ctx.point(0, 10, indexOnSpell + ' ');
-
+    
+    writeText(0, ySpellPosition + 1, chosenCharacter.spells[indexOnSpell].name);
+    
     if(isInformationDrawn)
         return;
-    
+        
     // 2)
     ctx.clear();
-    ctx.point(0, 10, key.name);
     
     for(i = 0; i < length; i+=1){
+        ySpellPosition = 3 + i * 2;
         var currentSpell = chosenCharacter.spells[i];
         ctx.point(0, 2 + i *2, 
                   chosenCharacter.spells[i].name + ' -> ' + currentSpell.description);
         ctx.bg(255, 0, 0);
-        ctx.line(0, 3 + i * 2,width,  3 + i * 2);
+        ctx.line(0, ySpellPosition ,width, ySpellPosition);
         ctx.cursor.restore();
     }
-    
+
     isInformationDrawn = true;
 }
 
@@ -588,4 +590,20 @@ function findCard(cardName){
     }
     
     Error('find card in play game has undefined argument');
+}
+
+var lastWrittenText ='',
+    ySpellPosition;
+
+function writeText(x,y,text){
+    
+    if(lastWrittenText != ''){
+        var i,
+            length = lastWrittenText.length;
+        for(i = text.length - 1; i <= length; i++){
+            ctx.point(x + i,y, ' ');
+        }
+    }
+    ctx.point(x,y, text);
+    lastWrittenText = text;
 }

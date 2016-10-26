@@ -3,6 +3,7 @@
     keypress = require('keypress'),
     ctx = require('axel'),
     // variables...
+    escapeClicksCounter = 0;
     width = process.stdout.columns,
     height = process.stdout.rows,
     boxX = width / 2 - 13,
@@ -60,9 +61,9 @@
     botDeckOptions = ['aggro', 'control', 'random'],
     indexOnBotDeck = 0,
     // choose bot Hero
-    hasChosenBotCharacter = false,
-    botCharacterOptions = ['elementalist', 'thief', 'hunter', 'random'],
-    indexOnBotCharacter = 0,
+    hasChosenBotClass = false,
+    botClassOptions = ['elementalist', 'thief', 'hunter', 'random'],
+    indexOnBotClass = 0,
     // array with card priorities 
     handPriority = [],
     attackPriority = [],

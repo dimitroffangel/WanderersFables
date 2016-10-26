@@ -1,3 +1,1 @@
 Spawning: Centaur Emissary on 2 Turn: 1 Mana Left: 0
-Spawning: Centaur Emissary on 12 Turn: 2 Mana Left: 1
-Centaur Emissary( 1 2 x: 2 ) VS Mama( 100 123213 x: 2 ) turn: 2

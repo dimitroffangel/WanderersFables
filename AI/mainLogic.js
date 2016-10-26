@@ -22,33 +22,34 @@ exports.chooseBot = function(key){
     ctx.clear();
     ctx.point(0, 19, 'Press not ENTER to continue');
     // 2)
+    
         if(lastKeyName != 'return' &&
            !hasChosenDifficulty)
             chooseDifficulty(key);
         
         if(lastKeyName != 'return' &&
            hasChosenDifficulty &&
-           !hasChosenBotCharacter)
+           !hasChosenBotClass)
             chooseBotCharacter(key);
         
         
         // 3)
         if(lastKeyName != 'return' &&
            hasChosenDifficulty &&
-           hasChosenBotCharacter &&
+           hasChosenBotClass &&
            indexOnDifficulty != 0) // => it is not easy (the difficulty)
             chooseBotDeck(key);
         
         else if(lastKeyName != 'return' &&
                 hasChosenDifficulty &&
-                hasChosenBotCharacter) // => it is on easy
+                hasChosenBotClass) // => it is on easy
             hasChosenOpponentDeck = true; // specially made basic deck
     
     lastKeyName = key.name;
 }
 
 exports.initilizeBot = function(){
-    enemyCharacter.class = botCharacterOptions[indexOnBotCharacter];
+    enemyCharacter.class = botClassOptions[indexOnBotClass];
     enemyCharacter.level = characters.getMaxCharacterLevel();
     
     if(enemyCharacter.class == 'elementalist'){
@@ -74,20 +75,18 @@ function determineSpellCursor(){
 function botCastsSpell(){
     
     var indexSpell = Math.round(Math.random() * 3),
-        markedCursor = determineSpellCursor(),
+        markedCursorField = determineSpellCursor(),
         cursorPosition = Math.round(Math.random() * playerFieldVectors.length),
         fieldIndex;
     
     
     // choose a field where to cast the spell;
-    while(markedCursor != 'enemyCharacter' &&
-          markedCursor != 'userPlayer' && 
-          (!fieldIndex || !playerFieldVectors[fieldIndex].card))
+    if(markedCursorField != 'enemyCharacter' && markedCursorField != 'userPlayer')
         fieldIndex = Math.round(Math.random() * (playerFieldVectors.length - 1));
     
     // cast the spell
     elementalistCasting
-        .castChosenSpell(indexSpell, enemyCharacter, markedCursor, fieldIndex);
+        .castChosenSpell(indexSpell, enemyCharacter, markedCursorField, fieldIndex);
     
     var shouldCastAgain = Math.random() * 100;
     if(shouldCastAgain <= 42)
@@ -152,6 +151,8 @@ function chooseDifficulty(key){
     writeText(0, 1, 'Choose difficulty...');
     writeText(0, 2, 'Currently chosen: ' + difficultyOptions[indexOnDifficulty]);
 
+    ctx.point(width - 20, 3, indexOnDifficulty + ' ' + key.name);
+    
     if(key.name == 'up' && 
        indexOnDifficulty > 0)
         indexOnDifficulty-=1;
@@ -170,21 +171,22 @@ function chooseDifficulty(key){
 
 function chooseBotCharacter(key){
     writeText(0, 3, 'Choose bot character...');
-    writeText(0, 4, 'Currently chosen: ' + botCharacterOptions[indexOnBotCharacter]);
+    writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);
     
     if(key.name == 'up' && 
-        indexOnBotCharacter > 0)
-         indexOnBotCharacter -=1;
+        indexOnBotClass > 0)
+         indexOnBotClass -=1;
     
     else if(key.name == 'down' &&
-             indexOnBotCharacter <  botCharacterOptions.length - 1)
-         indexOnBotCharacter +=1;
+             indexOnBotClass <  botClassOptions.length - 1)
+         indexOnBotClass +=1;
     
     else if(key.name == 'return'){
-        hasChosenBotCharacter = true;
+        hasChosenBotClass = true;
+        ctx.point(width - 20, 4,  'wtf');
         lastKeyName = 'return';
     }
-    writeText(0, 4, 'Currently chosen: ' + botCharacterOptions[indexOnBotCharacter]);
+    writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);
 }
 
 function chooseBotDeck(key){
@@ -449,6 +451,7 @@ function attackUserMinions_OnHard_Control(){
         var currentField = enemyFieldVectors[i];
         
         if(!currentField.card ||
+           currentField.isDisabled || 
            hasFieldAttacked(currentField) ||
            currentField.card.turnSpawn == turnCount ||
            setCardSpecialities.isCardImmobiled(currentField.card))
@@ -459,20 +462,21 @@ function attackUserMinions_OnHard_Control(){
         else if(botDeckOptions[indexOnBotDeck] == 'aggro')
             cardPriority.aggroCardLogic(currentField.card);
         
-        
+       // ctx.point(width - 20, 3, attackPriority.length + ' _42');
         for(var j = 0; j < attackPriority.length; j+=1){
             if(hasFieldAttacked(currentField))
                 break;
             
-            if(!attackPriority[j]){
-                enemyMinionAttacksPlayerHero(currentField);
-            }
-            
-            else{
-                enemyMinionAttacks(currentField, attackPriority[0],             
-                                   attackPriority[0].cardIndex);
-            }
+                enemyMinionAttacks(currentField, attackPriority[j].field,             
+                                   attackPriority[j].cardIndex);
+                ctx.point(width - 20, 3, 'Attacking PL Mob');
         }
+        
+        if(attackPriority.length == 0){ 
+                enemyMinionAttacksPlayerHero(currentField);
+                ctx.point(width - 20, 3, 'Attacking PL');
+        }
+        
         attackPriority = [];
     }
 }

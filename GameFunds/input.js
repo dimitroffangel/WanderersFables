@@ -38,19 +38,36 @@ function determineAfterAction(key){
     // return to the game menu
     if(currentModeState != 'Game Menu' &&
        key.name == 'escape'){
-        gameMenu.loadMenu();
-        currentModeState = 'Game Menu';
         
-        if(isBoardDrawn){ // => the game has started and he the player has quit
-            wonRowGames = 0;
-            isBoardDrawn = false;
-            hasChosenCharacter = false;
+        // => the game has started and he the player has quit
+        if(currentModeState == 'Play Game' && escapeClicksCounter == 2){
+            afterPlayGame();
+            gameMenu.loadMenu();
+               
+            currentModeState = 'Game Menu';
+        }
+        
+        else if(currentModeState == 'Play Game'){
+            escapeClicksCounter+=1;
+            
+            if(escapeClicksCounter == 1){
+                ctx.point(width / 2, 2, 
+                          '|Press again in order to leave');
+            }
+
+        }
+        
+        else if(currentModeState != 'Play Game'){
+            gameMenu.loadMenu();      
+            currentModeState = 'Game Menu';
         }
     }
     
     gameMenuLogic(key);
-    writeText(width - 20,0,gameMenu.differentOptions[currentModeIndex]);
+    writeText(width - 20,0, gameMenu.differentOptions[currentModeIndex]);
 }
+
+
 
 function gameMenuLogic(key){
     // moving the cursor to another mode
@@ -68,12 +85,10 @@ function gameMenuLogic(key){
     
     else if(currentModeState == 'Play Game'){
         
-        if(!hasChosenCharacter){
-            enemyPlayerHealth = 42;
+        if(!hasChosenCharacter)
             characterSelect.chooseCharacter(key);
-        }
         
-        if(hasChosenCharacter &&
+        else if(hasChosenCharacter &&
            !hasChosenOpponentDeck){
             botLogic.chooseBot(key);
         }
@@ -97,6 +112,78 @@ function gameMenuLogic(key){
         process.stdin.pause();
     }
     
+}
+
+function afterPlayGame(){
+        wonRowGames = 0;
+        isBoardDrawn = false;
+        isBoardDrawn = false;
+        isShowingInfo = false; 
+        isInformationDrawn = false; 
+        isChoosingSpell = false;
+        isCastingSpell = false; 
+        indexOnSpell = 0;
+        hasPlayerTurnEnded = false;
+        hasEnemyTurnEnded = false;
+        hasTurnEnded = false;
+        markedField = undefined;
+        removeFieldAt = NaN;
+        initialHealth = 42;
+        enemyPlayerHealth = 42;
+        playerHealth = initialHealth + 1000;
+        mana = 1;
+        turnCount = 1;
+        playerMana = 10;
+        enemyMana = mana; 
+        areCharactersDrawn = false;
+        indexAtCharacter = 0;
+        hasChosenCharacter = false;
+        firstPlayer = undefined;
+        lastKeyEntered = ' ';
+        userInput = ' ';
+        enterPressed = 0; 
+        isGameFinished = false;
+        hasChosenDifficulty = false;
+        indexOnDifficulty = 0;
+        hasChosenOpponentDeck = false;
+        indexOnBotDeck = 0;
+        hasChosenBotClass = false;
+        indexOnBotClass = 0;
+        handPriority = [];
+        attackPriority = [];
+        botDeck = [];
+        battleDone = [];
+        
+        // card variables
+        playerFieldVectors = []; 
+        playerCardsOnField = 0;
+        enemyFieldVectors = [];
+        enemyCardsOnField = 0;
+        enemyTauntsOnField = 0;
+        playerTauntsOnField = 0;
+        attackedFromFields = []; 
+        playerCardsVectors = [];
+        playerBonusCards = [];  
+        enemyCardsVectors = [];
+        showingPlayerVector = 'main';
+        playerCardsInDeck = 30;
+        botCardsInDeck = 30;
+        cursorField = 'hand'; 
+        cursorIndex = 0;
+        markedCardCursor = 0;
+        spawningCard = undefined;
+        infoOnCard = undefined; 
+        bleedingTargets = [];
+        vulnerableTargets = [];
+        immobileTargets = [];
+        isKnockingCard = false;
+        changingFieldIndex = undefined; 
+        isChangingMobStats = false;
+        isSwappingMinionStats = false;
+        blockTargets = [];
+        uniqCards = [];
+        summonnedUniqCards = [];
+        isOgdenDead =  false;
 }
 
 function writeText(x,y,text){
