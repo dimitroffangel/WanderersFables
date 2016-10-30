@@ -87,7 +87,7 @@ exports.playGameLogic = function(key, vector){
     }
     
     // close the info
-    if(key && key.ctrl && key.name == 's'){
+    if(key && key.ctrl && key.name == 'i'){
         
         if(infoOnCard){
             isShowingInfo = false;
@@ -415,6 +415,8 @@ function activatePlayerUniqCards(){
         i+=1;   
     }
 }
+
+var lastWrittenText = '';
 
 function writeText(x,y,text){
     

@@ -1,7 +1,16 @@
 //imporing
 var variables = require('../GameFunds/variables');
 
-exports.chooseCharacter = function(key){
+exports.chooseMenu = function(key){
+    
+    if(!chosenCharacter)
+        chooseCharacter(key);
+    
+    else if(chosenCharacter)
+        chooseDeck(key);
+}
+
+function chooseCharacter(key){
     ctx.clear();
     
     var i,
@@ -34,7 +43,43 @@ exports.chooseCharacter = function(key){
     // Character chosen
     else if(key.name == 'return' && isCharacterSelectDrawn){
         chosenCharacter = createdCharacters[indexAtCharacter];
-        hasChosenCharacter = true;
+        isCharacterSelectDrawn = false; 
+        return;
+    }
+    
+    isCharacterSelectDrawn = true;
+}
+
+function chooseDeck(key){
+    ctx.clear();
+    
+    var i= 0,
+        length = playerDecks.length;
+    
+    if(length == 0){
+        ctx.point(0, 3, 'Create a deck at the forge, first...');
+        return;
+    }
+        
+    ctx.point(width-40,2,'Currently chosen: '+ playerDecks[userIndexOnDeck].name);
+
+    for(i = 0; i < length; i+=1){
+    
+        if(playerDecks[i].deck.length == 30)
+            ctx.point(0, 2,'Name: ' + playerDecks[i].name);
+        else
+            ctx.point(0, 2, 'Name: ' + playerDecks[i].name +  '| Not usable');
+    }
+
+    // move the cursor
+    if(key.name == 'down' && userIndexOnDeck< length - 1)
+        userIndexOnDeck +=1;
+    else if(key.name == 'up' && userIndexOnDeck > 0)
+        userIndexOnDeck -=1;
+    
+    // Character chosen
+    else if(key.name == 'return' && isCharacterSelectDrawn){
+        userChosenDeck = playerDecks[userIndexOnDeck];
         isCharacterSelectDrawn = false; 
         return;
     }

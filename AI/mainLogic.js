@@ -151,8 +151,6 @@ function chooseDifficulty(key){
     writeText(0, 1, 'Choose difficulty...');
     writeText(0, 2, 'Currently chosen: ' + difficultyOptions[indexOnDifficulty]);
 
-    ctx.point(width - 20, 3, indexOnDifficulty + ' ' + key.name);
-    
     if(key.name == 'up' && 
        indexOnDifficulty > 0)
         indexOnDifficulty-=1;
@@ -183,7 +181,6 @@ function chooseBotCharacter(key){
     
     else if(key.name == 'return'){
         hasChosenBotClass = true;
-        ctx.point(width - 20, 4,  'wtf');
         lastKeyName = 'return';
     }
     writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);

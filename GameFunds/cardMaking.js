@@ -34,6 +34,7 @@ exports.Card = function(mana, attack, defence, special, name){
     this.bleedValue = undefined;
     this.vulnerableValue = undefined;
     
+    this.isOwned = true;
 };
 
 // creating the cards

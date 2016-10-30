@@ -11,7 +11,7 @@
 12.$ remove the killed creatures after the batte between 'em -> done
 13$. if player clicks escape while in game ask him if he is sure if he is then he loses the game -> done
 
-14.crafting system->for the cards and unlocking new mobs' spells in case you agree with 16
+14.crafting system:for the cards and unlocking new mobs' spells in case you agree with 16
 15.$ the block: the mob is attacked if it has  block than remove the block; otherwhise, take a normal damage. all boons are ->done
 16. think about each mob to have its spells and your mana decreases with their use  -> like upgrades in hearth of the swarm
 17.$ shuffle enemy cards -> done

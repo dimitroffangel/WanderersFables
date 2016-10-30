@@ -51,8 +51,8 @@ exports.removeField = function(removeAt){
     else
         index = playerBonusCards.length - removeAt;
     
-    var fieldX = cardFieldInitX + index * 10 + 2;
-    ctx.box(fieldX, cardHandInitY + cardHeight + 1, cardWidth, cardHeight);
+    var fieldX = cardFieldInitX + index * width*0.167 + 1;
+    ctx.box(fieldX, cardHandInitY + cardHeight + (height* 0.03), cardWidth, cardHeight);
 }
 
 exports.updateHand = function(){
@@ -206,7 +206,7 @@ exports.showInfoOnCard = function(card){
     // 3) draw a screen with only this card
     
     // 1)
-    if(!isShowingInfo){
+    if(!isShowingInfo && isBoardDrawn){
         isInformationDrawn = false;
         infoOnCard = undefined;
         ctx.clear();
@@ -218,6 +218,8 @@ exports.showInfoOnCard = function(card){
     
     // 2)
     ctx.clear();
+    if(!isBoardDrawn)
+        ctx.point(0, 2, 'Press any key to return');
     
     if(isInformationDrawn)
         return;
@@ -349,30 +351,32 @@ function drawBoard(){
     // enemy board
     for(i = 0; i < length; i +=1){
         ctx.bg(255,0,0);
-        var currentX = cardFieldInitX + i * 10 + 2;
+        var currentX = i*width*0.167 + 1;
         //var currentY =  cardFieldInitY - 10;
         ctx.box(currentX, enemyFieldY, cardWidth, cardHeight);
-        enemyFieldVectors.push({x:Math.round(currentX), y:Math.round(enemyFieldY), card:undefined, isDisabled: false});
+        enemyFieldVectors
+            .push({x:currentX,y:enemyFieldY,card:undefined,isDisabled: false});
         ctx.cursor.restore();
     }
     
     //border
     ctx.bg(128,128,0)
-    ctx.line(0, cardFieldInitY - 3, width, cardFieldInitY - 3);
+    ctx.line(0, cardFieldInitY - height*0.1, width, cardFieldInitY - height*0.1);
     ctx.cursor.restore();
     
     // player board
     for(i = 0; i < length; i+=1){
         ctx.bg(255, 0 ,0);
-        var currentX = cardFieldInitX + i * 10 + 2;
+        var currentX = i*width*0.167 + 1;
         
         ctx.box(currentX, cardFieldInitY, cardWidth, cardHeight);
-        playerFieldVectors.push({x:Math.round(currentX), y:Math.round(cardFieldInitY), card:undefined, isDisabled: false});
+        playerFieldVectors
+            .push({x:currentX, y:cardFieldInitY, card:undefined, isDisabled: false});
         ctx.cursor.restore();
     }
     
     ctx.bg(255, 0, 0);
-    ctx.line(0, cardFieldInitY + 8, width, cardFieldInitY + 8);
+    ctx.line(0, cardFieldInitY + height*0.26, width, cardFieldInitY + height*0.26);
     ctx.cursor.restore();
 }
 
@@ -381,9 +385,10 @@ function drawCards(amountOfPlayerCards, amountOfEnemyCards){
         botIndex = 0;
     
     while(playerIndex++ < amountOfPlayerCards){
-        var randomCard = JSON.parse(JSON.stringify(
-            cardMaking.allCards[
-                Math.round(Math.random() * (cardMaking.allCards.length -1))]));
+        
+        var index = Math.round(Math.random() * (userChosenDeck.deck.length -1));
+        var randomCard = JSON.parse(JSON.stringify(userChosenDeck.deck[index]));
+        
        // randomCard.defence += 1000;
         if(playerCardsVectors.length < 6)
             playerCardsVectors.push(randomCard);
@@ -391,6 +396,8 @@ function drawCards(amountOfPlayerCards, amountOfEnemyCards){
         // if the main vector is full transfer the cards to the bonus
         else if(playerBonusCards.length < 4)
             playerBonusCards.push(randomCard);
+        
+        playerDecks.splice(index, 1);
         
         // decrease player's cards
         cardVariables.playerCardsInDeck--;
@@ -441,7 +448,7 @@ function drawPlayerCards(vector){
     for(i = 0; i < vector.length; i+=1){
         var currentCard = vector[i];
         
-        var currentX = cardFieldInitX + i * 10 + 2,
+        var currentX =  i*width*0.167 + 1,
             currentY =  cardHandInitY;
         
         ctx.bg(255, 0, 0);    

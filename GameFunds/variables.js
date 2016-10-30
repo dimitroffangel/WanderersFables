@@ -6,12 +6,13 @@
     escapeClicksCounter = 0;
     width = process.stdout.columns,
     height = process.stdout.rows,
-    boxX = width / 2 - 13,
+    boxX = width / 2 - (width / 2 *0.5),
     boxY = height / 5,
     boxWidth = width / 2,
     boxHeight = height / 8,
     currentModeState = 'Game Menu',
     currentModeIndex = 0,
+    isShowingGuide = false,
     isBoardDrawn = false,
     isShowingInfo = false, // showing the information of the card
     isInformationDrawn = false, // if it is true do not redraw the board
@@ -64,9 +65,22 @@
     hasChosenBotClass = false,
     botClassOptions = ['elementalist', 'thief', 'hunter', 'random'],
     indexOnBotClass = 0,
-    // array with card priorities 
+    // array with card priorities
     handPriority = [],
     attackPriority = [],
     // bot Deck
     botDeck = [],
+    // forge menus and variables
+    forgeChosenOption = 'Forge Menu',
+    deckName = '',
+    isChoosingDeckCards = false,
+    forgeMenu = ['Created decks', 'Create a deck'],  
+    forgeIndex = 0,
+    playerDecks = [],
+    userIndexOnDeck = 0,
+    indexOnDeck = 0,
+    userChosenDeck = undefined,
+    onPage = 0,
+    rebuildingDeck = undefined;
+    chosenDeck = [],
     battleDone = [];

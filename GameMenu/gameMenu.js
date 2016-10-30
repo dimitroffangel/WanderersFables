@@ -4,7 +4,8 @@ exports.loadMenu = function (){
     ctx.point(width - 20, 0, this.differentOptions[currentModeIndex]);
 }
 
-exports.differentOptions = ['Play Game', 'Alter of Heroes',  'Training', 'Options', 'Exit'];
+exports.differentOptions = ['Play Game', 'Alter of Heroes', 'Forge', 
+                            'Training', 'Options', 'Exit'];
 
 
 // print the variety the user has

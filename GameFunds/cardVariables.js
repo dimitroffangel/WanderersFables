@@ -6,14 +6,14 @@ var cardMaking = require('./cardMaking');
 
 exports. 
     // size variables
-    cardHandInitX = width % 4,
+    cardHandInitX = width * 0.1,
     cardHandInitY = height - 13,
-    cardFieldInitX = width % 2,
-    cardFieldInitY = height % 16;
-    cardWidth = 9,
-    cardHeight = 6,
+    cardFieldInitX = 0,
+    cardFieldInitY = height * 0.43;
+    cardWidth = width * 0.15, // 9
+    cardHeight = height * 0.2, // 6
     // field Vector
-    enemyFieldY = cardFieldInitY - 10
+    enemyFieldY = height * 0.12,
     // text on the cards
     // hand
     handManaPlace =  cardHandInitY + cardHeight + 1,
