@@ -87,7 +87,7 @@ exports.playGameLogic = function(key, vector){
     }
     
     // close the info
-    if(key && key.ctrl && key.name == 'i'){
+    if(key.name == 'i'){
         
         if(infoOnCard){
             isShowingInfo = false;
@@ -151,35 +151,36 @@ exports.playGameLogic = function(key, vector){
     //left/right, up/down
     if(key.name == 'left' && cursorIndex >= 0){
             
-            if(cursorIndex > 0 &&
-               showingPlayerVector == 'main')
+            if(cursorIndex > 0)
                 cursorIndex--;
         
             else if(cursorIndex == 0 &&
                     showingPlayerVector == 'bonus'){
                 
-                var removeAt = 0;
-                while(removeAt++ <= vector.length)
-                    playGame.removeField(removeAt);
-                
-                showingPlayerVector = 'main';
-                cursorIndex = playerCardsVectors.length - 1;   
+                 if(playerCardsVectors.length < playerBonusCards.length){
+                    var removeAt = 0;
+                    while(removeAt++ <= vector.length)
+                        playGame.removeField(removeAt);
+                 }
+                    showingPlayerVector = 'main';
+                    cursorIndex = playerCardsVectors.length - 1;  
             }
     }
         
     else if(key.name == 'right'){
         
-        if((cursorField == 'playerField' ||
-            cursorField == 'enemyField') && cursorIndex < fieldLength - 1)
+        if((cursorField == 'playerField' || cursorField == 'enemyField') && 
+           cursorIndex < fieldLength - 1)
             cursorIndex+=1;
         
         else if(cursorField == 'hand' && cursorIndex < vector.length){
             
             if(showingPlayerVector == 'main' &&
-               cursorIndex == vector.length - 1 && playerBonusCards.length != 0){
+               cursorIndex == vector.length - 1){
                 // 1) change the vector card
                 // 2) delete the card/s in the previous vector
                 var removeAt = 0;
+                
                 while(removeAt <= vector.length)
                     playGame.removeField(removeAt++);
                 

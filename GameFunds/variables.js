@@ -6,10 +6,10 @@
     escapeClicksCounter = 0;
     width = process.stdout.columns,
     height = process.stdout.rows,
-    boxX = width / 2 - (width / 2 *0.5),
-    boxY = height / 5,
-    boxWidth = width / 2,
-    boxHeight = height / 8,
+    boxX = width * 0.5 - (width * 0.5 *0.42),
+    boxY = height * 0.2 - height*0.03, // without height *0.03 check
+    boxWidth = width * 0.5,
+    boxHeight = height * 0.1,
     currentModeState = 'Game Menu',
     currentModeIndex = 0,
     isShowingGuide = false,

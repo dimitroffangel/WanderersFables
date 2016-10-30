@@ -180,6 +180,8 @@ function afterPlayGame(){
         areCharactersDrawn = false;
         indexAtCharacter = 0;
         hasChosenCharacter = false;
+        chosenCharacter = undefined,
+        chosenDeck = undefined,
         firstPlayer = undefined;
         lastKeyEntered = ' ';
         userInput = ' ';

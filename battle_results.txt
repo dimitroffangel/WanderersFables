@@ -1,15 +1,1 @@
-Spawning: Centaur Emissary on 1 Turn: 1 Mana Left: 0
-Spawning: Veteran Fleshreaver on 14.360000000000001 Turn: 2 Mana Left: 0
-Centaur Emissary ( 1 2 x: 1 ) VS  asd Remaining Stamina: 1042 Turn: 2
-Spawning: Badazar"s Champion on 27.720000000000002 Turn: 3 Mana Left: 1
-Centaur Emissary ( 1 2 x: 1 ) VS  asd Remaining Stamina: 1041 Turn: 3
-Veteran Fleshreaver ( 2 2 x: 14.360000000000001 ) VS  asd Remaining Stamina: 1040 Turn: 3
-Spawning: Ettin on 41.080000000000005 Turn: 4 Mana Left: 2
-Centaur Emissary ( 1 2 x: 1 ) VS  asd Remaining Stamina: 1038 Turn: 4
-Veteran Fleshreaver ( 2 2 x: 14.360000000000001 ) VS  asd Remaining Stamina: 1037 Turn: 4
-Badazar"s Champion ( 3 2 x: 27.720000000000002 ) VS  asd Remaining Stamina: 1035 Turn: 4
-Spawning: Ert and Burt on 54.440000000000005 Turn: 5 Mana Left: 0
-Centaur Emissary ( 1 2 x: 1 ) VS  asd Remaining Stamina: 1032 Turn: 5
-Veteran Fleshreaver ( 2 2 x: 14.360000000000001 ) VS  asd Remaining Stamina: 1031 Turn: 5
-Badazar"s Champion ( 3 2 x: 27.720000000000002 ) VS  asd Remaining Stamina: 1029 Turn: 5
-Ettin ( 2 3 x: 41.080000000000005 ) VS  asd Remaining Stamina: 1026 Turn: 5
+Spawning: Stone Dwarf on 1 Turn: 2 Mana Left: 0

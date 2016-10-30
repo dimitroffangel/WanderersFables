@@ -146,7 +146,7 @@ function printChosenDeck(key){
     var i = 0,
         length = rebuildingDeck.deck.length;
     
-    while(i < height - 2 && i + onPage< rebuildingDeck.deck.length){
+    while(i < height - 2 && i < length && i < 10){
         printCard(i+3, rebuildingDeck.deck[i + onPage], onPage + i + 1);
         i+=1;
     }
@@ -160,13 +160,13 @@ function printChosenDeck(key){
         forgeIndex-=1;
     else if(key.name == 'down' && forgeIndex < length - 1)
         forgeIndex+=1;
-    else if(key.name=='right'&& onPage + i < length)
-        onPage+=i;
+    else if(key.name=='right'&& onPage + 10 < length)
+        onPage+=10;
     else if(key.name == 'right' && onPage + i > length)
-        onPage= length - i;
-    else if(key.name == 'left')
-        onPage= 0;
-    else if(key.name == 'i' && key.ctrl){
+        onPage= length - (onPage + 10);
+    else if(key.name == 'left' && onPage - 10 >= 0)
+        onPage-= 10;
+    else if(key.name == 'i'){
         ctx.point(0, 1, isShowingInfo + 'mama');
         if(isShowingInfo){
             isInformationDrawn = false;
@@ -206,7 +206,8 @@ function createDeck(key){
         length = cardMaking.allCards.length,
         availableCards = [];
     
-    while(availableCards.length < height - 2 && i < length){
+    while(availableCards.length < height - 2 &&
+          availableCards.length < 10 && i < length){
         var currentCard = cardMaking.allCards[i];
         
         if(!currentCard.isOwned){
@@ -227,13 +228,13 @@ function createDeck(key){
         forgeIndex-=1;
     else if(key.name == 'down' && forgeIndex < availableCards.length -1)
         forgeIndex+=1;
-    else if(key.name=='right'&& onPage + i < length)
-        onPage+=i;
-    else if(key.name == 'right' && onPage + i > length)
-        onPage= length - onPage;
-    else if(key.name == 'left' && Math.abs(i - onPage) - onPage>= 0)
-        onPage= Math.abs(i - onPage)- onPage;
-    else if(key.name == 'i' && key.ctrl){
+    else if(key.name=='right'&& onPage + 10 < length)
+        onPage+=10;
+    else if(key.name == 'right' && onPage + 10 > length)
+        onPage= length - (onPage + 10);
+    else if(key.name == 'left' && onPage - 10 >= 0)
+        onPage-= 10;
+    else if(key.name == 'i'){
         ctx.point(0, 1, isShowingInfo + 'mama');
         if(isShowingInfo){
             isInformationDrawn = false;

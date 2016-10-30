@@ -7,7 +7,7 @@ var cardMaking = require('./cardMaking');
 exports. 
     // size variables
     cardHandInitX = width * 0.1,
-    cardHandInitY = height - 13,
+    cardHandInitY = height - height*0.43,
     cardFieldInitX = 0,
     cardFieldInitY = height * 0.43;
     cardWidth = width * 0.15, // 9
@@ -26,10 +26,10 @@ exports.
     playerFieldAttackPlace = cardFieldInitY + 2,
     playerFieldDefencePlace = cardFieldInitY + 3,
     //info card vector + width/height
-    infoCardX = width % 23,
-    infoCardY = height % 27,
-    infoCardWidth = 27,
-    infoCardHeight = 27,
+    infoCardX = width*0.23,
+    infoCardY = height*0.1,
+    infoCardWidth = width*0.45,
+    infoCardHeight = height*0.9,
     fieldLength = 6,
     //cards' locations
     playerFieldVectors = [], // main -> value for showingPlayerVector
