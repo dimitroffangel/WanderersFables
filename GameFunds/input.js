@@ -4,6 +4,7 @@ var
     variables = require('./variables'),
     cardVariables = require('./cardVariables'),
     cardMaking = require('./cardMaking'),
+    loginScreen = require('../loginScreen'),
     gameMenu = require('../GameMenu/gameMenu'),
     playGame = require('../GameMenu/playGame'),
     playGameInput = require('./playGameInput'),
@@ -13,6 +14,7 @@ var
     forge = require('../Character/forge'),
     training = require('../GameMenu/training'),
     options  = require('../GameMenu/options'),// requirements
+    friends = require('../GameMenu/friends'),
     lastWrittenText = '';
 
 variables.keypress(process.stdin);
@@ -70,8 +72,10 @@ function determineAfterAction(key){
     }
     
     // entering a mode in the game
-    else if(key.name == 'return')
-        currentModeState = gameMenu.differentOptions[currentModeIndex];
+    else if(key.name == 'return' && currentModeState != 'Login Screen'){
+        currentModeState = differentOptions[currentModeIndex];
+       // ctx.point(0, 15, currentModeState);
+    }
     
     else if(key.name == 'h'){
         showGuide();
@@ -101,6 +105,8 @@ function determineAfterAction(key){
         else if(currentModeState != 'Play Game'){
             forgeChosenOption = 'Forge Menu';
             forgeIndex = 0;
+            currentLoginState = 'LoginMenu';
+            currentLoginIndex = 0;
             
             gameMenu.loadMenu();      
             currentModeState = 'Game Menu';
@@ -108,22 +114,30 @@ function determineAfterAction(key){
     }
     
     gameMenuLogic(key);
-    writeText(width - 20,0, gameMenu.differentOptions[currentModeIndex]);
+    if(currentModeState != 'Login Screen')
+        writeText(width - 20,0, differentOptions[currentModeIndex]);
+    else
+        writeText(width - 20,0, 'Login Screen');
 }
 
 function gameMenuLogic(key){
+    
     // moving the cursor to another mode
-    ctx.point(0, 1, width + '|Height: '+ height);
+    if(currentModeState == 'Login Screen' && loggedUsername == ''){
+        countera+=1;
+        loginScreen.loginMenu(key);
+    }
+    
+    else if(loggedUsername != '')
+        currentModeState = 'Game Menu';
+    
     if(currentModeState == 'Game Menu'){
         if(key.name == 'up' && currentModeIndex >  0)
             currentModeIndex-=1;
         
         else if(key.name == 'down' && 
-                currentModeIndex < gameMenu.differentOptions.length -1)
+                currentModeIndex < differentOptions.length -1)
             currentModeIndex+=1;
-        
-        else
-            return;
     }
     
     else if(currentModeState == 'Play Game'){
@@ -139,13 +153,17 @@ function gameMenuLogic(key){
     }
     
     else if(currentModeState == 'Alter of Heroes')
-        characters.loadCreatedCharacters(key);
+        characters.loadCreatedCharacters(key);  
     
     else if(currentModeState == 'Forge')
             forge.forgeMenu(key);
     
     else if(currentModeState == 'Training')
         training.beginRoutine();
+    
+    else if(currentModeState == 'Friends')
+        friends.friendsMenu(key);
+        
     
     else if(currentModeState == 'Options')
         options.loadOptions();

@@ -18,4 +18,5 @@
 18.$ go through the code and delete repetitions again!!!!!->done
 19.$ go back to the kamikazeto99 -> done
 20.$ add battlecries->done
-21. make the game's size equal to every console standard.
+21.$ make the game's size equal to every console standard.-> done
+22.make a fortress for each player when the fortress is destroyed a boss pops out, after the boss execution the road to strike the enemy hero is open

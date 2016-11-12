@@ -1,1 +1,91 @@
 Spawning: Stone Dwarf on 1 Turn: 2 Mana Left: 0
+Spawning: Champion Harathi Warrior on 11.020000000000001 Turn: 3 Mana Left: 0
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 1042 Turn: 3
+Spawning: Badazar"s Champion on 21.040000000000003 Turn: 4 Mana Left: 2
+Spawning: Veteran Fleshreaver on 31.060000000000002 Turn: 4 Mana Left: 0
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 1040 Turn: 4
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 1038 Turn: 4
+Spawning: Modiniir Beastmater on 41.080000000000005 Turn: 5 Mana Left: 0
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 1036 Turn: 5
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 1034 Turn: 5
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 1032 Turn: 5
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 1029 Turn: 5
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 1027 Turn: 5
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 1025 Turn: 6
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 1023 Turn: 6
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 1021 Turn: 6
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 1018 Turn: 6
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 1016 Turn: 6
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 1013 Turn: 6
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 1011 Turn: 7
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 1009 Turn: 7
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 1007 Turn: 7
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 1004 Turn: 7
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 1002 Turn: 7
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 999 Turn: 7
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 997 Turn: 8
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 995 Turn: 8
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 993 Turn: 8
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 990 Turn: 8
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 988 Turn: 8
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 985 Turn: 8
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 983 Turn: 9
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 981 Turn: 9
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 979 Turn: 9
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 976 Turn: 9
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 974 Turn: 9
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 971 Turn: 9
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 969 Turn: 10
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 967 Turn: 10
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 965 Turn: 10
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 962 Turn: 10
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 960 Turn: 10
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 957 Turn: 10
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 955 Turn: 11
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 953 Turn: 11
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 951 Turn: 11
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 948 Turn: 11
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 946 Turn: 11
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 943 Turn: 11
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 941 Turn: 12
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 939 Turn: 12
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 937 Turn: 12
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 934 Turn: 12
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 932 Turn: 12
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 929 Turn: 12
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 927 Turn: 13
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 925 Turn: 13
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 923 Turn: 13
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 920 Turn: 13
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 918 Turn: 13
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 915 Turn: 13
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 913 Turn: 14
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 911 Turn: 14
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 909 Turn: 14
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 906 Turn: 14
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 904 Turn: 14
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 901 Turn: 14
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 899 Turn: 15
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 897 Turn: 15
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 895 Turn: 15
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 892 Turn: 15
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 890 Turn: 15
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 887 Turn: 15
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 885 Turn: 16
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 883 Turn: 16
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 881 Turn: 16
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 878 Turn: 16
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 876 Turn: 16
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 873 Turn: 16
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 871 Turn: 17
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 869 Turn: 17
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 867 Turn: 17
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 864 Turn: 17
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 862 Turn: 17
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 859 Turn: 17
+Stone Dwarf ( 2 2 x: 1 ) VS  xor Remaining Stamina: 857 Turn: 18
+Champion Harathi Warrior ( 2 3 x: 11.020000000000001 ) VS  xor Remaining Stamina: 855 Turn: 18
+Badazar"s Champion ( 3 2 x: 21.040000000000003 ) VS  xor Remaining Stamina: 853 Turn: 18
+Veteran Fleshreaver ( 2 2 x: 31.060000000000002 ) VS  xor Remaining Stamina: 850 Turn: 18
+Modiniir Beastmater ( 3 5 x: 41.080000000000005 ) VS  xor Remaining Stamina: 848 Turn: 18
+War Beast ( 2 2 x: 51.1 ) VS  xor Remaining Stamina: 845 Turn: 18

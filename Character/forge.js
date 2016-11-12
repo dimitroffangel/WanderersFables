@@ -60,6 +60,7 @@ exports.forgeMenu = function(key){
             if(playerDecks[forgeIndex].deck.length < 30)
                 playerDecks[forgeIndex].isUsable = false;
         }
+        
         forgeIndex = 0;
         forgeChosenOption = 'Forge Menu';
     }
