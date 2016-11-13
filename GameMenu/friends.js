@@ -19,8 +19,14 @@ exports.friendsMenu = function(key){
             friendIndex+=1;
     }
     else if(key.name == 'return' && lastKey != 'return'){
-           if(friendChosenOption == 'Friends Menu')
+           if(friendChosenOption == 'Friends Menu'){
                 friendChosenOption = friendsOptions[friendIndex];
+                if(friendChosenOption == 'Accept friend requests'){
+                    variables.getRequest();
+                    var dbContent = fs.readFileSync('alphaDummy.json');
+                    
+                }
+            }
         else if(friendChosenOption == 'Show friends'){
             variables.getRequest();
             var db = 
@@ -36,7 +42,7 @@ exports.friendsMenu = function(key){
             if(isFound != -1){
                 var requestTo = db[userFriends[friendIndex] + '-Profile'];
                 requestTo.requestsFrom.push('mama');
-                variables.postRequest();
+                variables.postRequestFriendRequest(profileUsername, userFriends[friendIndex]);
                 variables.getRequest();
                 ctx.point(0, 4, 'Your friend request was sent');
             }
@@ -87,6 +93,13 @@ function printFriendMode(key){
         if(key.name != 'return')
             inputFriendRequest += key.name;
         ctx.point(0, 3, 'Enter player"s name:' + inputFriendRequest);
+    }
+
+    else if(friendChosenOption == 'Accept friend requests'){
+        length = userRequests.length;
+        
+        for(i = 0; i <length;i+=1)
+            ctx.point(0, 4+i, userRequests[i]);
     }
 }
 

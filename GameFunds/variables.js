@@ -6,7 +6,7 @@
     fs= require('fs'),
     // variables...
     countera = 0,
-    escapeClicksCounter = 0;
+    escapeClicksCounter = 0,
     width = process.stdout.columns,
     height = process.stdout.rows,
     boxX = width * 0.5 - (width * 0.5 *0.42),
@@ -15,8 +15,10 @@
     boxHeight = height * 0.1,
     // login variables
     loggedUsername = '',
+    profileUsername = '',
     userProfile= [],
     userFriends = [],
+    userRequests = [],
     currentLoginState = 'LoginMenu',
     logInOptions = ['Log In', 'Register'],
     currentLoginIndex = 0,
@@ -26,7 +28,7 @@
     isUsernameSet = false,
     isPasswordSet = false,
     differentOptions=['Play Game','Alter of Heroes',
-                      'Forge','Training','Friends','Options' ];
+                      'Forge','Training','Friends','Options' ],
     currentModeState = 'Login Screen',
     currentModeIndex = 0,
     isShowingGuide = false,
@@ -98,7 +100,7 @@
     indexOnDeck = 0,
     userChosenDeck = undefined,
     onPage = 0,
-    rebuildingDeck = undefined;
+    rebuildingDeck = undefined,
     chosenDeck = [],
     //friendsVariables
     friendsOptions = ['Chat with a friend', 'Show friends', 'Send friend request', 
@@ -177,20 +179,13 @@ exports.getRequest = function(){
      });
 }
                
-exports.postRequest = function(){
-    var addUser = '',
-        addPassword = '';
-    if(username != '')
-        addUser = username;
-    if(password != '')
-        addPassword = password;
-    
+exports.postRequestUserData = function(){
     var options = {
         uri: 'http://localhost:1234/',
         method: 'POST',
         json: {
-            "username": addUser,
-            "password": addPassword
+            "username": username,
+            "password": password
         }
     };
         
@@ -201,6 +196,23 @@ exports.postRequest = function(){
             console.log(body) // Print the shortened url.*/
         if(error)
             console.log(error);
+    });
+}
+
+exports.postRequestFriendRequest = function(requester, reciever){
+    var options = {
+        uri: 'http://localhost:1234/',
+        method: 'POST',
+        json:{
+            "requester":requester,
+            "reciever": reciever
+        }
+    };
+    console.log(options.method);
+
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
     });
 }
 

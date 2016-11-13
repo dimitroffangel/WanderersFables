@@ -30,7 +30,7 @@ exports.register = function(key){
             isUsernameSet = false;
             isPasswordSet = false;
             
-            variables.postRequest();
+            variables.postRequestUserData();
             variables.getRequest();
             
             username = '';

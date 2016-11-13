@@ -121,7 +121,7 @@ function determineAfterAction(key){
 }
 
 function gameMenuLogic(key){
-    
+    ctx.point(0, 5, loggedUsername + ' ' + 'mama');
     // moving the cursor to another mode
     if(currentModeState == 'Login Screen' && loggedUsername == ''){
         countera+=1;
