@@ -18,7 +18,6 @@
     profileUsername = '',
     userProfile= [],
     userFriends = [],
-    userRequests = [],
     currentLoginState = 'LoginMenu',
     logInOptions = ['Log In', 'Register'],
     currentLoginIndex = 0,
@@ -104,13 +103,30 @@
     chosenDeck = [],
     //friendsVariables
     friendsOptions = ['Chat with a friend', 'Show friends', 'Send friend request', 
-                      'Accept friend requests'],
+                      'Accept friend requests', 'Choose state'],
+    userState = 'online',
+    stateOptions = ['Online', 'Offline', 'Do not disturb', 'Away'],
     friendIndex = 0,
     friendChosenOption = 'Friends Menu',
     friendProfile = [],
+    chatHistory = [],
+    allChats = [],
+    chatFriend = '',
     inputFriendRequest = '',
+    inputMessage = '',
     battleDone = [];
 
+exports.searchArray = function(array, element){
+    var i,
+        length = array.length;
+    
+    for(i= 0 ; i <length; i +=1){
+        if(array[i] == element)
+            return i;
+    }
+    
+    return -1;
+}
 
 exports.searchPattern = function(text, pattern){
     
@@ -210,6 +226,61 @@ exports.postRequestFriendRequest = function(requester, reciever){
     };
     console.log(options.method);
 
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
+    });
+}
+
+exports.postRequestAcceptFriend = function(concordant, requester){
+    var options = {
+        uri: 'http://localhost:1234/',
+        method: 'POST',
+        json:{
+            "concordant":concordant,
+            "requester": requester
+        }
+    };
+    
+    console.log(options.method);
+
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
+    });
+}
+
+exports.postRequestChangeState = function(stateValue){
+    var options = {
+        uri: 'http://localhost:1234/',
+        method: 'POST',
+        json:{
+            "stateValue": stateValue,
+            "user": profileUsername
+        }
+    };
+    
+    console.log(options.method);
+    
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
+    });
+}
+
+exports.postRequestSendMessage=  function(sender, deliverTo){
+    var options = {
+        uri: 'http://localhost:1234/',
+        method: 'POST',
+        json: {
+            "sender": sender,
+            "message": inputMessage,
+            "deliverTo": deliverTo
+        }
+    };
+    
+    console.log(options.method);
+    
     request(options, function(error, response, body){
         if(error)
             console.error(error);

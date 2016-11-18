@@ -18,9 +18,10 @@ exports.logIn = function(key) {
             variables.getRequest();
             var dbContent = JSON.parse(fs.readFileSync('alphaDummy.json'));
 
-            var usernameIndex = variables.searchPattern(dbContent['username'], username),
-                passwordIndex = variables.searchPattern(dbContent['password'],password);
-            
+            var usernameIndex = variables.searchArray(dbContent['username'], username),
+                passwordIndex = variables.searchArray(dbContent['password'], password);
+                        console.log(username + ' '  + password);
+
             if(usernameIndex == -1){
                 ctx.point('No such user found');
                 username = '';
@@ -28,33 +29,17 @@ exports.logIn = function(key) {
                 isUsernameSet = false;
                 isPasswordSet = false;
             }   
-            
-            else{ // check password match
-                var usernameCommasFound = 0,
-                    passwordCommasFound = 0;
-                
-                for(var i = usernameIndex; i >= 0; i-=1){
-                    if(dbContent.username[i] == ',')
-                        usernameCommasFound +=1;
-                }
-                
-                // now, search in the password field
-                for(var i = passwordIndex; i>= 0; i-=1){
-                    if(dbContent.password[i] == ',')
-                        passwordCommasFound+=1;
-                }
-            }
-            
             // damn son nemo is found
-            if(passwordCommasFound == usernameCommasFound && passwordIndex != -1){
-                currentLoginState = 'LoginMenu';
+            if(usernameIndex == passwordIndex && passwordIndex != -1){
                 userProfile = dbContent[username + '-Profile'];
                 userFriends = userProfile['friends'];
                 profileUsername = username;
+                variables.postRequestChangeState('online');
                 username = '';
                 password = '';
                 isUsernameSet = false;
-                isPasswordSet = false;
+                isPasswordSet = false;  
+                currentLoginState = 'LoginMenu';
                 gameMenu.loadMenu();
                 currentModeState = 'Game Menu';
             }

@@ -26,7 +26,7 @@ if(process.stdin.setRawMode)
 process.stdin.on('keypress', function(c, key) {
     
     determineAfterAction(key);
-    if(key && key.ctrl && key.name == 'c') 
+    if(key && key.ctrl && key.name == 'c')
         process.stdin.pause();
 });
 
@@ -34,7 +34,7 @@ process.stdin.on('keypress', function(c, key) {
 function showGuide(){
     ctx.clear();
     
-    if(currentModeState == 'Play Game'){
+    if(currentModeState == 'Play Game' || currentModeState == 'Training'){
         ctx.point(0, 1, 'Left/right/up/down-> move the cursor');
         ctx.point(0, 2, 'Return-> marks a card and if marked attaks with it');
         ctx.point(0, 3,'J-> shows available spells');
@@ -88,21 +88,22 @@ function determineAfterAction(key){
        key.name == 'escape'){
         
         // => the game has started and he the player has quit
-        if(currentModeState == 'Play Game' && escapeClicksCounter == 2){
+        if(currentModeState == 'Play Game' || currentModeState == 'Training') && 
+            escapeClicksCounter == 2){
             afterPlayGame();
             gameMenu.loadMenu();
             
             currentModeState = 'Game Menu';
         }
         
-        else if(currentModeState == 'Play Game'){
+        else if(currentModeState == 'Play Game' || currentModeState == 'Training){
             escapeClicksCounter+=1;
             
             if(escapeClicksCounter == 1)
                 ctx.point(width / 2, 2, '|Press again in order to leave');
         }
         
-        else if(currentModeState != 'Play Game'){
+        else if(currentModeState != 'Play Game' || currentModeState == 'Training'){
             forgeChosenOption = 'Forge Menu';
             forgeIndex = 0;
             currentLoginState = 'LoginMenu';
@@ -141,14 +142,10 @@ function gameMenuLogic(key){
     }
     
     else if(currentModeState == 'Play Game'){
-        
         if(!chosenCharacter || !userChosenDeck)
             characterSelect.chooseMenu(key);
         
-        else if(chosenCharacter && userChosenDeck && !hasChosenOpponentDeck)
-            botLogic.chooseBot(key);
-        
-        if(chosenCharacter && hasChosenOpponentDeck)
+        if(chosenCharacter)
             playGameInput.initializeGameInput(key);
     }
     
@@ -158,12 +155,19 @@ function gameMenuLogic(key){
     else if(currentModeState == 'Forge')
             forge.forgeMenu(key);
     
-    else if(currentModeState == 'Training')
-        training.beginRoutine();
+    else if(currentModeState == 'Training'){
+        if(!chosenCharacter || !userChosenDeck)
+            characterSelect.chooseMenu(key);
+        
+        else if(chosenCharacter && userChosenDeck && !hasChosenOpponentDeck)
+            botLogic.chooseBot(key);
+        
+        if(chosenCharacter && hasChosenOpponentDeck)
+            playGameInput.initializeGameInput(key);   
+    }
     
     else if(currentModeState == 'Friends')
         friends.friendsMenu(key);
-        
     
     else if(currentModeState == 'Options')
         options.loadOptions();

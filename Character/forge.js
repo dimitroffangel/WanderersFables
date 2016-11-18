@@ -148,12 +148,13 @@ function printChosenDeck(key){
         length = rebuildingDeck.deck.length;
     
     while(i < height - 2 && i < length && i < 10){
+        if(!rebuildingDeck.deck[i + onPage])
+            break;
+        
         printCard(i+3, rebuildingDeck.deck[i + onPage], onPage + i + 1);
         i+=1;
     }
 
-    ctx.point(0, 1, i + ' mama');
-    
     if(!key)
         return;
     
@@ -215,7 +216,7 @@ function createDeck(key){
             i+=1;
             continue;
         }
-
+        
         availableCards.push(currentCard);
         printCard(availableCards.length + 2, currentCard, i+1 - onPage);
         i+=1;

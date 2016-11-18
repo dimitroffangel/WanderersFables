@@ -13,7 +13,7 @@ exports.register = function(key){
             variables.getRequest();
             var dbContent = JSON.parse(fs.readFileSync('alphaDummy.json'));
             
-            var foundAt = variables.searchPattern(dbContent['username'], username);
+            var foundAt = variables.searchArray(dbContent['username'], username);
                 
             if(foundAt != -1){
                 ctx.point(0, 2, 'The chosen username is taken');
@@ -32,10 +32,10 @@ exports.register = function(key){
             
             variables.postRequestUserData();
             variables.getRequest();
+            currentLoginState = 'LoginMenu';
             
             username = '';
             password = '';
-            currentModeState = 'Menu';
         }
     }
 }

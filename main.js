@@ -12,6 +12,7 @@ function loadFunds(){
 
 
 function main(){
+    
     loadFunds();
     //gameMenu.loadMenu();
 }
