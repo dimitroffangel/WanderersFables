@@ -88,7 +88,7 @@ function determineAfterAction(key){
        key.name == 'escape'){
         
         // => the game has started and he the player has quit
-        if(currentModeState == 'Play Game' || currentModeState == 'Training') && 
+        if(currentModeState == 'Play Game' || currentModeState == 'Training' && 
             escapeClicksCounter == 2){
             afterPlayGame();
             gameMenu.loadMenu();
@@ -96,7 +96,7 @@ function determineAfterAction(key){
             currentModeState = 'Game Menu';
         }
         
-        else if(currentModeState == 'Play Game' || currentModeState == 'Training){
+        else if(currentModeState == 'Play Game' || currentModeState == 'Training'){
             escapeClicksCounter+=1;
             
             if(escapeClicksCounter == 1)

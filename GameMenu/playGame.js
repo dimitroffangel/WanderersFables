@@ -27,10 +27,11 @@ exports.beginGame = function(){
 }
 
 exports.eachFrame = function(){
+    
     isBoardDrawn = true;
     // draw the cards and update the field
-     drawCardInHand();
-     drawCardOnField();
+    drawCardInHand();
+    drawCardOnField();
     
     // draw Player Info
     ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' + 
@@ -38,10 +39,16 @@ exports.eachFrame = function(){
     'Health: ' + playerHealth + '| '); 
     
     this.onTurnOrder();   
-    drawCardInHand();
-    drawCardOnField();
 }
  
+function vsAI(){
+}
+
+function vsPlayer(){
+    isBoardDrawn = true;
+    
+}
+
 // if a minion is down
 exports.removeField = function(removeAt){
     var index;
@@ -306,21 +313,15 @@ exports.showSpells = function(key){
 exports.onTurnOrder = function(){
     if(firstPlayer == 'enemyPlayer'){
         mainLogic.summonEnemyCreature();
-        drawCardInHand();
-        drawCardOnField();
         
         isBoardDrawn = true;
         // draw the cards and update the field
     
         if(hasEnemyTurnEnded){       
-             drawCardInHand();
-             drawCardOnField();
             
             if(hasPlayerTurnEnded){
                 endTurn();
                 this.isGameOver();
-                drawCardInHand();
-                drawCardOnField();
             }
         }
     }
@@ -328,19 +329,13 @@ exports.onTurnOrder = function(){
     if(firstPlayer == 'userPlayer'){
         if(hasPlayerTurnEnded){
             mainLogic.summonEnemyCreature();   
-            drawCardInHand();
-            drawCardOnField();
             
             if(hasEnemyTurnEnded){
                 endTurn();
                 this.isGameOver();
-                drawCardInHand();
-                drawCardOnField();
             }
         }
     }     
-    
-    drawCardInHand();
     drawCardOnField();
 }
 

@@ -1,4 +1,4 @@
-var variables = require('./GameFunds/variables');
+var variables = require('./GameFunds/variables'),
    // gameMenu = require('./GameMenu/gameMenu'),
     input = require('./GameFunds/input');
 

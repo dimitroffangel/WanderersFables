@@ -287,6 +287,22 @@ exports.postRequestSendMessage=  function(sender, deliverTo){
     });
 }
 
+exports.postDeck = function(deck){
+    var options = {
+        uri:'http://localhost:1234/',
+        method: 'POST',
+        json: {
+            "owner": profileUsername,
+            "deck": deck
+        }
+    };
+    
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
+    });
+}
+
 exports.enterPassword = function(key){
     
     if(isPasswordSet || key.name == 'up' || key.name == 'down' ||

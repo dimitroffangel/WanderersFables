@@ -12,6 +12,7 @@ exports.initializeGameInput = function(key){
         playGame.loadAfterGame(key);
         return;
     }
+    
     if(!isBoardDrawn)
         playGame.beginGame();
     
