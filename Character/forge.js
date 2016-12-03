@@ -10,7 +10,10 @@ exports.forgeMenu = function(key){
     ctx.clear();
     printCurrentMode(key);
     printIndex();
-        
+    
+    if(!key)
+        return;
+    
     if(key.name == 'return' && lastKey != 'return'){
         if(forgeChosenOption == 'Created decks'){
             rebuildingDeck = playerDecks[forgeIndex];

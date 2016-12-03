@@ -28,6 +28,8 @@ exports.beginGame = function(){
 
 exports.eachFrame = function(){
     
+    ctx.clear();
+    drawBoard();
     isBoardDrawn = true;
     // draw the cards and update the field
     drawCardInHand();

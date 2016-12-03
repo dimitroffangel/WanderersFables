@@ -10,10 +10,9 @@ exports.register = function(key){
         variables.enterUsername(key);
         
         if(isUsernameSet){
-            variables.getRequest();
             var dbContent = JSON.parse(fs.readFileSync('alphaDummy.json'));
             
-            var foundAt = variables.searchArray(dbContent['username'], username);
+            var foundAt = variables.searchArray(pleaseWork['username'], username);
                 
             if(foundAt != -1){
                 ctx.point(0, 2, 'The chosen username is taken');
@@ -31,7 +30,6 @@ exports.register = function(key){
             isPasswordSet = false;
             
             variables.postRequestUserData();
-            variables.getRequest();
             currentLoginState = 'LoginMenu';
             
             username = '';

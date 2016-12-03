@@ -3,9 +3,13 @@
     keypress = require('keypress'),
     ctx = require('axel'),
     request = require('request'),
+    http = require('http'),
     fs= require('fs'),
+    readline = require('readline'),
     // variables...
-    countera = 0,
+     countera99 =  0,
+    rl = undefined,
+    isUserWriting = false,
     escapeClicksCounter = 0,
     width = process.stdout.columns,
     height = process.stdout.rows,
@@ -14,10 +18,12 @@
     boxWidth = width * 0.5,
     boxHeight = height * 0.1,
     // login variables
+    pleaseWork = undefined,
+    isDataLoaded = false,
     loggedUsername = '',
     profileUsername = '',
     userProfile= [],
-    userFriends = [],
+    userID = undefined,
     currentLoginState = 'LoginMenu',
     logInOptions = ['Log In', 'Register'],
     currentLoginIndex = 0,
@@ -113,6 +119,8 @@
     allChats = [],
     chatFriend = '',
     inputFriendRequest = '',
+    inputFriendID = undefined,
+    isInputWritten = false, 
     inputMessage = '',
     battleDone = [];
 
@@ -172,29 +180,100 @@ function search(text, pattern, right){
 
 var lastKey = 'return';
 
-exports.enterUsername = function(key){
-    if(isUsernameSet || key.name == 'up' || key.name == 'down' ||
-         key.name == 'right' || key.name == 'left' || key.name == 'space')
-        return;
-
-    if(key.name != 'return')
-        username += key.name;
-    else if(key.name == 'return' && lastKey != 'return')
+exports.enterUsername = function(){
+    isUserWriting = true;
+      
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false
+    });
+      
+    rl.question('Enter a username?', function(answer){
+        username = JSON.parse(JSON.stringify(answer));
+        isUserWriting = false;
         isUsernameSet = true;
+        rl = undefined;
+    });
+}
 
-    lastKey = key.name;
+exports.enterPassword = function(){
+    isUserWriting = true;
+      
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false
+    });
+      
+    rl.question('Enter a password?', function(answer){
+        password = JSON.parse(JSON.stringify(answer));
+        isUserWriting = false;
+        isPasswordSet = true;
+        rl = undefined;
+    });
 }
 
 // the body is parsed
 exports.getRequest = function(){
-    request.get('http://localhost:1234/', function(error, response, body){
-         if(!error && response.statusCode == 200)
-            fs.writeFileSync('alphaDummy.json', body);
-         else if(error)
-             console.error(error);
-     });
+    isDataLoaded = false;
+    
+    var options = {
+        hostname: 'localhost',
+        port: '1234',
+        path: '/',
+        agent: false,
+    }; 
+    
+    http.get(options, function(res){
+        body = [];
+        res.on('data', function(chunk){
+            body.push(chunk);
+            body = Buffer.concat(body);
+            pleaseWork = clone(JSON.parse(body));
+        });
+        res.on('end', function(){
+            isDataLoaded = true;
+            console.log(new Date().getTime());
+            return;
+        });
+    });
 }
-               
+
+function clone(obj) {
+    var copy;
+
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj) return obj;
+
+    // Handle Date
+    if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+    }
+
+    // Handle Array
+    if (obj instanceof Array) {
+        copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = clone(obj[i]);
+        }
+        return copy;
+    }
+
+    // Handle Object
+    if (obj instanceof Object) {
+        copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr))
+                copy[attr] = clone(obj[attr]);
+        }
+        return copy;
+    }
+}
+
+
 exports.postRequestUserData = function(){
     var options = {
         uri: 'http://localhost:1234/',
@@ -215,13 +294,15 @@ exports.postRequestUserData = function(){
     });
 }
 
-exports.postRequestFriendRequest = function(requester, reciever){
+exports.postRequestFriendRequest = function(requester, requesterID, reciever, recieverID){
     var options = {
         uri: 'http://localhost:1234/',
         method: 'POST',
         json:{
             "requester":requester,
-            "reciever": reciever
+            "requesterID": requesterID,
+            "reciever": reciever,
+            "recieverID": recieverID
         }
     };
     console.log(options.method);
@@ -232,13 +313,15 @@ exports.postRequestFriendRequest = function(requester, reciever){
     });
 }
 
-exports.postRequestAcceptFriend = function(concordant, requester){
+exports.postRequestAcceptFriend = function(concordant,concordantID,requester,requesterID){
     var options = {
         uri: 'http://localhost:1234/',
         method: 'POST',
         json:{
             "concordant":concordant,
-            "requester": requester
+            "concordantID":concordantID,
+            "requester": requester,
+            "requesterID":requesterID
         }
     };
     
@@ -256,7 +339,8 @@ exports.postRequestChangeState = function(stateValue){
         method: 'POST',
         json:{
             "stateValue": stateValue,
-            "user": profileUsername
+            "user": profileUsername,
+            "userID": userID
         }
     };
     
@@ -268,12 +352,13 @@ exports.postRequestChangeState = function(stateValue){
     });
 }
 
-exports.postRequestSendMessage=  function(sender, deliverTo){
+exports.postRequestSendMessage=  function(sender, senderID, deliverTo){
     var options = {
         uri: 'http://localhost:1234/',
         method: 'POST',
         json: {
             "sender": sender,
+            "senderID":senderID,
             "message": inputMessage,
             "deliverTo": deliverTo
         }
@@ -293,6 +378,7 @@ exports.postDeck = function(deck){
         method: 'POST',
         json: {
             "owner": profileUsername,
+            "ownerID": userID,
             "deck": deck
         }
     };
@@ -301,19 +387,4 @@ exports.postDeck = function(deck){
         if(error)
             console.error(error);
     });
-}
-
-exports.enterPassword = function(key){
-    
-    if(isPasswordSet || key.name == 'up' || key.name == 'down' ||
-         key.name == 'right' || key.name == 'left' || key.name == 'space')
-        return;
-
-    if(key.name != 'return')
-        password += key.name;
-
-    else if(key.name == 'return' && lastKey != 'return')
-        isPasswordSet = true;
-
-    lastKey = key.name;
 }

@@ -15,9 +15,9 @@ exports.friendsMenu = function(key){
             friendIndex+=1;
         else if((friendChosenOption == 'Chat with a friend' ||
                 friendChosenOption == 'Show friends') && 
-                friendIndex < userFriends.length -1)
-            friendIndex+=1;
-        else if(friendChosenOption=='Choose state'&& friendIndex<stateOptions.length - 1)
+                friendIndex<pleaseWork[profileUsername+userID]['friends'].length -1)
+                friendIndex+=1;
+        else if(friendChosenOption=='Choose state'&& friendIndex < stateOptions.length - 1)
             friendIndex+=1;
     }
     else if(key.name == 'backspace')
@@ -26,56 +26,39 @@ exports.friendsMenu = function(key){
     else if(key.name == 'return' && lastKey != 'return'){
            if(friendChosenOption == 'Friends Menu'){
                 friendChosenOption = friendsOptions[friendIndex];
-                if(friendChosenOption == 'Accept friend requests'){
-                    variables.getRequest();     
-                    var db = JSON.parse(fs.readFileSync('alphaDummy.json'));
-                    userProfile = db[profileUsername + '-Profile'];
-                }
-               else if(friendChosenOption == 'Chat with a friend' ||
-                       friendChosenOption == 'Show friends'){
-                    variables.getRequest();
-                   var db = JSON.parse(fs.readFileSync('alphaDummy.json'));
-                   userProfile = db[profileUsername+'-Profile'];
-                   userFriends = userProfile['friends'];
-               }
             }
         else if(friendChosenOption == 'Chat with a friend'){
             friendChosenOption = 'Chatting';
-            variables.getRequest();
-            var db =
-                JSON.parse(fs.readFileSync('alphaDummy.json'));
-            chatFriend = userFriends[friendIndex];
-            friendProfile = db[chatFriend + '-Profile'];
-            allChats = db['chat'];
+            chatFriend =pleaseWork[profileUsername + userID]['friends'][friendIndex];
+            friendProfile = pleaseWork[chatFriend];
+            allChats = pleaseWork['chat'];
             chatHistory = allChats[chatFriend + '-' + profileUsername];
             if(!chatHistory)
                 chatHistory = allChats[profileUsername + '-' + chatFriend];
         }
         
+        
         else if(friendChosenOption == 'Chatting'){
-            variables.postRequestSendMessage(profileUsername, chatFriend);
+            variables.postRequestSendMessage(profileUsername, userID, chatFriend);
             inputMessage = '';
         }
         
         else if(friendChosenOption == 'Show friends'){
-            variables.getRequest();
-            var db = 
-                JSON.parse(fs.readFileSync('alphaDummy.json'));
-            friendProfile = db[userFriends[friendIndex] + '-Profile'];
+            friendProfile = pleaseWork[pleaseWork[profileUsername + userID]
+                                       ['friends'][friendIndex]];
             friendChosenOption = 'Friend Profile';
         }
         else if(friendChosenOption == 'Send friend request'){
-            variables.getRequest();
-            var db = JSON.parse(fs.readFileSync('alphaDummy.json'));
             
-            var isFound = variables.searchArray(db.username, inputFriendRequest);
-            if(isFound != -1){
+            var isFound = variables.searchArray(pleaseWork.username, inputFriendRequest);
+            if(isFound != -1 ){
                 console.log(inputFriendRequest);
                 variables
-                    .postRequestFriendRequest(profileUsername, inputFriendRequest);
-                variables.getRequest();
+                    .postRequestFriendRequest(profileUsername, userID, 
+                                              inputFriendRequest);
                 ctx.point(0, 4, 'Your friend request was sent');
             }
+            
             else{
                 ctx.point(0, 4, 'User with such a name is non-existent');
                 inputFriendRequest = '';
@@ -84,11 +67,10 @@ exports.friendsMenu = function(key){
         else if(friendChosenOption == 'Accept friend requests'){
             variables
                 .postRequestAcceptFriend(profileUsername, 
-                                         userProfile['requestsFrom'][friendIndex]);
+                        pleaseWork[profileUsername +userID]['requestsFrom'][friendIndex]);
             friendChosenOption = 'Friends Menu';
         }
         else if(friendChosenOption == 'Choose state'){
-            variables.getRequest();
             
             userState = stateOptions[friendIndex];
             variables.postRequestChangeState(userState);
@@ -121,10 +103,10 @@ function printFriendMode(key){
     
     else if(friendChosenOption == 'Show friends' ||
             friendChosenOption == 'Chat with a friend'){
-        length = userFriends.length;
+        length = pleaseWork[profileUsername  + userID]['friends'].length;
         
         for(i = 0; i < length; i+=1)
-            ctx.point(0, 4+i, userFriends[i]);
+            ctx.point(0, 4+i, pleaseWork[profileUsername + userID]['friends'][i]);
     }
     
     else if(friendChosenOption == 'Chatting'){
@@ -132,14 +114,13 @@ function printFriendMode(key){
            key.name != 'right' && key.name != 'left')
             inputMessage += key.name;
         
-        variables.getRequest();
-            var db =
-                JSON.parse(fs.readFileSync('alphaDummy.json'));
-            allChats = db['chat'];
-            chatHistory = allChats[chatFriend + '-' + profileUsername];
-            if(!chatHistory)
-                chatHistory = allChats[profileUsername + '-' + chatFriend];
-        
+            variables.getRequest();
+            allChats = pleaseWork['chat'];
+            chatHistory = allChats[chatFriend + '-' + profileUsername + userID];
+            if(!chatHistory){
+                chatHistory = allChats[profileUsername + userID+ '-' + chatFriend];
+                
+            }
         i = 0;
         length = chatHistory.length;
         
@@ -158,22 +139,30 @@ function printFriendMode(key){
     }
     
     else if(friendChosenOption == 'Friend Profile'){
-        ctx.point(0, 3, 'Name: ' + userFriends[friendIndex]);
-        ctx.point(0, 4, 'Level: ' + friendProfile['Level']);
-        ctx.point(0, 5, 'Wins: ' + friendProfile['Wins']);
+        ctx.point(0, 3, 'Name: ' + 
+                  pleaseWork[profileUsername  + userID]['friends'][friendIndex]);
+        ctx.point(0, 4, 'Level: ' + friendProfile['level']);
+        ctx.point(0, 5, 'Wins: ' + friendProfile['wins']);
     }
     
     else if(friendChosenOption == 'Send friend request'){
-        if(key.name != 'return')
-            inputFriendRequest += key.name;
-        ctx.point(0, 3, 'Enter player"s name:' + inputFriendRequest);
+        if(key.name != 'return'){
+            if(!isInputWritten){
+                inputFriendRequest += key.name;
+                ctx.point(0, 3, 'Enter player"s name:' + inputFriendRequest);
+            }
+            else{
+                inputFriendRequest += key.name;
+                ctx.point(0,3,'Enter player"s tag:' + inputFriendRequest);
+            }
+        }
     }
 
     else if(friendChosenOption == 'Accept friend requests'){
-        length = userProfile['requestsFrom'].length;
+        length = pleaseWork[profileUsername + userID]['requestsFrom'].length;
         
         for(i = 0; i < length; i+=1)
-            ctx.point(0, 4, userProfile['requestsFrom'][i]);
+            ctx.point(0, 4, pleaseWork[profileUsername + userID]['requestsFrom'][i]);
     }
     
     else if(friendChosenOption == 'Choose state'){
@@ -187,5 +176,6 @@ function printIndex(){
         ctx.point(0, 1, friendsOptions[friendIndex] + friendIndex);
     else if(friendChosenOption == 'Chat with a friend' ||
             friendChosenOption == 'Show friends')
-        ctx.point(0, 1, userFriends[friendIndex] + ' ' +userFriends.length);
+        ctx.point(0, 1, pleaseWork[profileUsername + userID]['friends'] + ' '
+                  + pleaseWork[profileUsername + userID]['friends'].length);
 }

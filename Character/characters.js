@@ -1,3 +1,4 @@
+
 //imporing
 var variables = require('../GameFunds/variables'),
     elementalist = require('../ClassSkillTrees/elementalist');
@@ -14,11 +15,11 @@ exports.loadCreatedCharacters = function(key){
         isCreatingCharacter = true;
         ctx.point(0, 2, 'You must create a Character in order to play');
         this.createCharacter(key);
-        lastKeyEntered = key.name;
+        if(key)
+            lastKeyEntered = key.name;
     }
     
-    else{
-        
+    else{        
         var i,
             length = createdCharacters.length;
         
@@ -26,6 +27,9 @@ exports.loadCreatedCharacters = function(key){
             ctx.point(0, 2 + i *2, 'Class: ' +  createdCharacters[i].class);
             ctx.point(0, 3 + i *2, 'Champion"name: ' + createdCharacters[i].name);
         }
+        
+        if(!key)
+            return;
         
         if(key.name == 'q')
             ctx.point(0, 10, createdCharacters[indexAtCharacter].class);
@@ -40,14 +44,16 @@ exports.loadCreatedCharacters = function(key){
             indexAtCharacter++;
     }
     
-    if(key.name == 'backspace' ){
+    if(key && key.name == 'backspace'){
         isCreatingCharacter = true;
     }
     
 }
 
 exports.createCharacter = function(key){
-
+    if(!key)
+        return;
+    
     if(key.name == 'return' && userInput != ' '){
         enterPressed +=1;
         userInput.trimLeft();

@@ -24,10 +24,17 @@ if(process.stdin.setRawMode)
 
 //Keyboard input
 process.stdin.on('keypress', function(c, key) {
+    if(isUserWriting)
+        return;
     
-    determineAfterAction(key);
     if(key && key.ctrl && key.name == 'c')
         process.stdin.pause();
+    
+    if(key){
+        determineAfterAction(key);
+        key.name  = '';
+      //  gameMenuLogic(key);
+    }
 });
 
 
@@ -42,7 +49,7 @@ function showGuide(){
     'Backspace-> cancels attacking a card by another or returns to a previous field');
         ctx.point(0, 5, 'Q-> casts the spell pointed by your cursor');
         ctx.point(0, 6, 'Tab-> cancels casting the chosen spell');
-        ctx.point(0, 7, 'Ctrl + I-> shows info for the card at which is your cursor');
+        ctx.point(0, 7, 'I-> shows info for the card at which is your cursor');
         ctx.point(0, 8, 'M-> ends your turn');
     }
     
@@ -74,7 +81,10 @@ function determineAfterAction(key){
     // entering a mode in the game
     else if(key.name == 'return' && currentModeState != 'Login Screen'){
         currentModeState = differentOptions[currentModeIndex];
-       // ctx.point(0, 15, currentModeState);
+    
+        if(currentModeState == 'Login Screen' || currentModeState == 'Friends'){
+            variables.getRequest();
+        }
     }
     
     else if(key.name == 'h'){
@@ -122,21 +132,22 @@ function determineAfterAction(key){
 }
 
 function gameMenuLogic(key){
-    ctx.point(0, 5, loggedUsername + ' ' + 'mama');
+   /* if(pleaseWork){
+        ctx.point(0, 5, key.name);
+    //    ctx.point(0, 5, pleaseWork['mama-Profile']['friends'][0]);
+    }*/
     // moving the cursor to another mode
-    if(currentModeState == 'Login Screen' && loggedUsername == ''){
-        countera+=1;
+    if(currentModeState == 'Login Screen' && loggedUsername == '')
         loginScreen.loginMenu(key);
-    }
     
     else if(loggedUsername != '')
         currentModeState = 'Game Menu';
     
     if(currentModeState == 'Game Menu'){
-        if(key.name == 'up' && currentModeIndex >  0)
+        if(key &&key.name == 'up' && currentModeIndex >  0)
             currentModeIndex-=1;
         
-        else if(key.name == 'down' && 
+        else if(key && key.name == 'down' && 
                 currentModeIndex < differentOptions.length -1)
             currentModeIndex+=1;
     }

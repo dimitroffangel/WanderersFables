@@ -12,7 +12,7 @@ function loadFunds(){
 
 
 function main(){
-    
+    variables.getRequest();
     loadFunds();
     //gameMenu.loadMenu();
 }

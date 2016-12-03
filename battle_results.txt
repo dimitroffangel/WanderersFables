@@ -1,1 +1,16 @@
-Spawning: Centaur Emissary on 1 Turn: 1 Mana Left: 0
+Spawning: Veteran Fleshreaver on 1 Turn: 2 Mana Left: 0
+Spawning: Stone Dwarf on 11.020000000000001 Turn: 3 Mana Left: 1
+Veteran Fleshreaver( 2 2 x: 1 ) VS Mama( 100 123213 x: 1 ) turn: 3
+Spawning: Badazar"s Champion on 1 Turn: 4 Mana Left: 2
+Spawning: Badazar"s Champion on 21.040000000000003 Turn: 4 Mana Left: 0
+Stone Dwarf( 2 2 x: 11.020000000000001 ) VS Mama( 100 123213 x: 1 ) turn: 4
+Spawning: Ert and Burt on 11.020000000000001 Turn: 5 Mana Left: 0
+Badazar"s Champion( 3 2 x: 1 ) VS Mama( 100 123211 x: 1 ) turn: 5
+Badazar"s Champion( 3 2 x: 21.040000000000003 ) VS Mama( 100 123208 x: 1 ) turn: 5
+Spawning: Graw Trapper on 1 Turn: 6 Mana Left: 1
+Ert and Burt( 5 4 x: 11.020000000000001 ) VS Mama( 100 123205 x: 1 ) turn: 6
+Modiniir Beastmater( 3 5 x: 21.040000000000003 ) VS Mama( 100 123200 x: 1 ) turn: 6
+Spawning: Modiniir Beastmater on 11.020000000000001 Turn: 7 Mana Left: 2
+Spawning: Ettin on 31.060000000000002 Turn: 7 Mana Left: 0
+Graw Trapper( 4 4 x: 1 ) VS Mama( 100 123197 x: 1 ) turn: 7
+War Beast( 2 2 x: 21.040000000000003 ) VS Mama( 100 123193 x: 1 ) turn: 7
