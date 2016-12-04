@@ -3,11 +3,8 @@ var variables = require('./GameFunds/variables');
 exports.register = function(key){
     ctx.clear();
     
-    ctx.point(0, 3, 'Enter an username: ' + username);
-    ctx.point(0, 4, 'Enter a password: ' + password);
-
     if(!isUsernameSet){
-        variables.enterUsername(key);
+        variables.enterUsername();
         
         if(isUsernameSet){
             var dbContent = JSON.parse(fs.readFileSync('alphaDummy.json'));
@@ -22,18 +19,17 @@ exports.register = function(key){
         }
     }
     
-    else if(!isPasswordSet){
-        variables.enterPassword(key);
-        
-        if(isPasswordSet){
+    else if(!isPasswordSet)
+        variables.enterPassword();
+
+    else if(isPasswordSet){
             isUsernameSet = false;
             isPasswordSet = false;
             
             variables.postRequestUserData();
             currentLoginState = 'LoginMenu';
-            
+            ctx.point(0, 12, username + ' VS ' + password);
             username = '';
             password = '';
-        }
     }
 }

@@ -11,7 +11,7 @@ exports.logIn = function(key) {
     else if(!isPasswordSet)
         variables.enterPassword();
 
-        else if(isPasswordSet){
+    else if(isPasswordSet){
             var usernameIndex = variables.searchArray(pleaseWork['username'], username),
                 passwordIndex = variables.searchArray(pleaseWork['password'], password);
                         ctx.point(0, 20, username + ' VS '  + password);

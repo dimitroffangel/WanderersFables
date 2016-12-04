@@ -42,7 +42,7 @@ exports.initializeGameInput = function(key){
 }
 
 exports.playGameLogic = function(key, vector){
-   writeText(0, 0, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
+   writeText(0, 1, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
     
     // 1) Enter
     //  a) the marked card is chosen
