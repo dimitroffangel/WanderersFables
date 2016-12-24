@@ -21,7 +21,7 @@ exports.initializeGameInput = function(key){
     if(showingPlayerVector == 'main')
         currentUsedVector = playerCardsVectors;
     else
-        currentUsedVector = playerBonusCards;
+     currentUsedVector = playerBonusCards;
 
     this.playGameLogic(key, currentUsedVector);
 
@@ -33,13 +33,16 @@ exports.initializeGameInput = function(key){
         return;
     } 
     
-    playGame.eachFrame();
-
+    if(currentModeState == 'Training')
+        playGame.vsAIEachFrame();
+    else if(currentModeState == 'Play Game')
+        playGame.vsPlayerEachFrame();
+    
     if(infoOnCard)
             playGame.showInfoOnCard(infoOnCard);
                                  
     writeText(0, 2 , 'Mana: ' + playerMana + ' Turn: ' + turnCount);
-}
+} 
 
 exports.playGameLogic = function(key, vector){
    writeText(0, 1, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
@@ -54,7 +57,7 @@ exports.playGameLogic = function(key, vector){
     //  if(backspace is clicked) go to 2).c)
     
     // player ready to end the turn
-    if(key.name == 'm'){
+    if(key.name == 'm' && !hasPlayerTurnEnded){
         hasPlayerTurnEnded = true;
         activatePlayerUniqCards();
     }
@@ -71,7 +74,7 @@ exports.playGameLogic = function(key, vector){
     }
     
     // cast spell
-    if(key.name == 'q'){
+    if(key.name == 'q' && !hasPlayerTurnEnded){
         if(isCastingSpell){
             isCastingSpell = false;
             elementalistCasting.castChosenSpell(indexOnSpell, chosenCharacter, 
@@ -129,7 +132,8 @@ exports.playGameLogic = function(key, vector){
             cursorIndex = 0;
         }
         
-        else if(isKnockingCard || isChangingMobStats || isSwappingMinionStats){
+        else if((isKnockingCard || isChangingMobStats || isSwappingMinionStats)
+                && !hasPlayerTurnEnded){
             
             if(playerCardsVectors.length < 6)
                 playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
@@ -228,140 +232,139 @@ exports.playGameLogic = function(key, vector){
            cursorField == 'enemyCharacter')
         cursorField = 'enemyField';
     
-        writeText(0, 0, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
+    writeText(0, 1, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
 }
 
 function returnPressed(key, vector){
-    if(key.name != 'return')
+    if(key.name != 'return' || !isBoardDrawn || hasPlayerTurnEnded)
         return; // Harley Quin wuz 'ere
     
-    if(isBoardDrawn){
-        if(cursorField == 'hand'){
-            if(!spawningCard){
-                spawningCard = vector[cursorIndex];    
-                markedCardCursor = cursorIndex;
-            }
+    if(cursorField == 'hand'){
+        if(!spawningCard){
+            spawningCard = vector[cursorIndex];
+            markedCardCursor = JSON.parse(JSON.stringify(cursorIndex));
+            ctx.point(width - 29, 2, 'WORKING');
         }
-     
-        else if(cursorField == 'playerField'){
-            markedField = playerFieldVectors[cursorIndex];
+    }
+    
+    else if(cursorField == 'playerField'){
+        markedField = playerFieldVectors[cursorIndex];
+        
+        if(spawningCard){
             
-            if(spawningCard){
-                
-                if(markedField.card)
-                    spawningCard = null;
-                
-                else{
-                    // summon the card
-                    if(!playerFieldVectors[cursorIndex].card && 
-                        playerMana >= spawningCard.mana &&
-                       !playerFieldVectors[cursorIndex].isDisabled){
-                        // 1) delete the card from the hand array
-                        // 2) update the hand
-                        // 3) initilize the card and summon the card
-                        // 4) update the mana tauntsCount...
-                        
-                        // 1)
-                        vector.splice(markedCardCursor, 1);
-                        
-                        // 2)
-                        playGame.updateHand();
-                        
-                        // 3)           
-                        var playerField = playerFieldVectors[cursorIndex];
-                         playerField.card =
-                            JSON.parse(JSON.stringify(spawningCard));
-                        
-                        setCardSpecialities
-                            .setCardSpecials(playerField.card, 'player');
-                        
-                        // 4)
-                        playGame.updateOwnMana(-spawningCard.mana);
-                        playerCardsOnField +=1;
-                        
-                        if(spawningCard.isTaunt)
-                            playerTauntsOnField+= 1;
-                        
-                        isCardUniq(playerField.card, cursorIndex);
-                      //  attackedFromFields.push(markedField);
-                    }
-                    
-                    // demark the chosen one
-                    spawningCard = undefined;
-                    cursorIndex = 0; 
-                }
-            }
+            if(markedField.card)
+                spawningCard = null;
             
             else{
-                // choose an enemy to strike at // 42life
-                if(markedField.card && 
-                   !hasFieldAttacked(markedField) &&
-                   !setCardSpecialities.isCardImmobiled(markedField.card)){
-                    cursorField = 'enemyField';
-                    cursorIndex = 0;
+                // summon the card
+                if(!playerFieldVectors[cursorIndex].card && 
+                    playerMana >= spawningCard.mana &&
+                    !playerFieldVectors[cursorIndex].isDisabled){
+                    // 1) delete the card from the hand array
+                    // 2) update the hand
+                    // 3) initilize the card and summon the card
+                    // 4) update the mana tauntsCount...                    
+
+                    // 1)
+                    vector.splice(markedCardCursor, 1);
+                    
+                    // 2)
+                    playGame.updateHand();
+                    
+                    // 3)           
+                    var playerField = playerFieldVectors[cursorIndex];
+                    playerField.card =
+                        JSON.parse(JSON.stringify(spawningCard));
+                    
+                    setCardSpecialities
+                        .setCardSpecials(playerField.card, 'player');
+                    
+                    // 4)
+                    playGame.updateOwnMana(-spawningCard.mana);
+                    playerCardsOnField +=1;
+                    
+                    if(spawningCard.isTaunt)
+                        playerTauntsOnField+= 1;
+                    
+                    isCardUniq(playerField.card, cursorIndex);
+                    //  attackedFromFields.push(markedField);
                 }
+                
+                // demark the chosen one
+                spawningCard = undefined;
+                cursorIndex = 0; 
             }
         }
         
-        else if(cursorField == 'enemyField'){
-            // the only way to get through here is by !markedField
-            
-            var targettedEnemy = enemyFieldVectors[cursorIndex];
-            
-            if(!targettedEnemy.card)
-                return;
-            
-            // if the field has not attacked yet, attack!!!
-            // and mark the field as attacked
-            if(markedField.card &&
-               !hasFieldAttacked(markedField) &&
-               !setCardSpecialities.isCardImmobiled(markedField.card)){
-                
-                var playerCard = markedField.card,
-                    enemyCard = markedField.card;
-                
-                if(playerCard.defence - enemyCard.attack <= 0 && 
-                    playerCard.hasDeathrattle)
-                    setCardSpecialities.setCardSpecials(playerCard, 'player');
-                else if(playerCard.defence - enemyCard.attack <= 0 &&
-                        playerCard.name == 'Ogden Stonehealer')
-                    isOgdenDead = true;
-                
-                if(enemyCard.defence - playerCard.attack <= 0 &&
-                    enemyCard.hasDeathrattle)
-                    setCardSpecialities.setCardSpecials(enemyCard, 'enemy');
-                else if(enemyCard.defence - playerCard.attack <= 0 &&
-                        enemyCard.name == 'Ogden Stonehealer')
-                    isOgdenDead = true;
-                
-                setCardSpecialities
-                    .activateCardBoons(markedField,targettedEnemy.card.defence,
-                                       'enemyField', cursorIndex, enemyCard.canBlock);
-                
-                playGame.attackBetweenMinions(markedField, targettedEnemy);
+        else{
+            // choose an enemy to strike at // 42life
+            if(markedField.card && 
+                !hasFieldAttacked(markedField) &&
+                !setCardSpecialities.isCardImmobiled(markedField.card)){
+                cursorField = 'enemyField';
+                cursorIndex = 0;
             }
         }
+    }
+    
+    else if(cursorField == 'enemyField'){
+        // the only way to get through here is by !markedField
         
-        else if(cursorField == 'enemyCharacter' &&
-                markedField.card &&
-                !hasFieldAttacked(markedField) && 
-               !setCardSpecialities.isCardImmobiled(markedField.card)){
-            // check for enemy weapon, spell, shield, stealth, kungala whatever thing
+        var targettedEnemy = enemyFieldVectors[cursorIndex];
+        
+        if(!targettedEnemy.card)
+            return;
+        
+        // if the field has not attacked yet, attack!!!
+        // and mark the field as attacked
+        if(markedField.card &&
+            !hasFieldAttacked(markedField) &&
+            !setCardSpecialities.isCardImmobiled(markedField.card)){
             
-            var playerCard = markedField.card;
+            var playerCard = markedField.card,
+                enemyCard = markedField.card;
+            
+            if(playerCard.defence - enemyCard.attack <= 0 && 
+                playerCard.hasDeathrattle)
+                setCardSpecialities.setCardSpecials(playerCard, 'player');
+            else if(playerCard.defence - enemyCard.attack <= 0 &&
+                    playerCard.name == 'Ogden Stonehealer')
+                isOgdenDead = true;
+            
+            if(enemyCard.defence - playerCard.attack <= 0 &&
+                enemyCard.hasDeathrattle)
+                setCardSpecialities.setCardSpecials(enemyCard, 'enemy');
+            else if(enemyCard.defence - playerCard.attack <= 0 &&
+                    enemyCard.name == 'Ogden Stonehealer')
+                isOgdenDead = true;
             
             setCardSpecialities
-                .activateCardBoons(markedField, enemyPlayerHealth, 
-                                   'enemyCharacter', 0, playerCard.canBlock);
+                .activateCardBoons(markedField,targettedEnemy.card.defence,
+                                    'enemyField', cursorIndex, enemyCard.canBlock);
             
-            playGame.attackEnemyPlayer(markedField);
-            
-            if((!markedField.card || markedField.card.defence <= 0) &&
-              playerCard.hasDeathrattle)
-                setCardSpecialities.setCardSpecials(playerCard, enemy);
-            
-            ctx.point(width - 29, 2, 'Enemy character health: ' + enemyPlayerHealth);
+            playGame.attackBetweenMinions(markedField, targettedEnemy);
         }
+    }
+    
+    else if(cursorField == 'enemyCharacter' &&
+            markedField.card &&
+            !hasFieldAttacked(markedField) && 
+            !setCardSpecialities.isCardImmobiled(markedField.card)){
+        // check for enemy weapon, spell, shield, stealth, kungala whatever thing
+        
+        var playerCard = markedField.card;
+        
+        setCardSpecialities
+            .activateCardBoons(markedField, enemyPlayerHealth, 
+                                'enemyCharacter', 0, playerCard.canBlock);
+        
+        playGame.attackEnemyPlayer(markedField);
+        
+        if((!markedField.card || markedField.card.defence <= 0) &&
+            playerCard.hasDeathrattle)
+            setCardSpecialities.setCardSpecials(playerCard, enemy);
+        
+     //   ctx.point(width - 29, 2, 'Enemy character health: ' + enemyPlayerHealth);
     }
 }
 

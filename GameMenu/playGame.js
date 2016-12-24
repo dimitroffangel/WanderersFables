@@ -17,19 +17,18 @@ exports.beginGame = function(){
     // 6) add the uniq cards to know who to mark and the battle cry cards
     
     
-/*1)*/ ctx.clear();
-/*2)*/ mainLogic.initilizeBot();
-/*3)*/ cardMaking.shuffleDecks();
-/*4)*/ drawBoard();
-/*5)*/ drawInitialCards();
-/*5)*/ determineFirstPlayer();
-/*6)*/ cardMaking.defineUniq_Cards();
+    /*1)*/ ctx.clear();
+            
+            if(currentModeState == 'Training')
+     /*2)*/      mainLogic.initilizeBot();
+    /*3)*/ cardMaking.shuffleDecks();
+    /*4)*/ drawBoard();
+    /*5)*/ drawInitialCards();
+    /*5)*/ determineFirstPlayer();
+    /*6)*/ cardMaking.defineUniq_Cards();
 }
 
-exports.eachFrame = function(){
-    
-    ctx.clear();
-    drawBoard();
+exports.vsAIEachFrame = function(){
     isBoardDrawn = true;
     // draw the cards and update the field
     drawCardInHand();
@@ -40,15 +39,20 @@ exports.eachFrame = function(){
     'Class: ' + chosenCharacter.class + '| ' + 'Name: ' + chosenCharacter.name + '|' + 
     'Health: ' + playerHealth + '| '); 
     
-    this.onTurnOrder();   
-}
- 
-function vsAI(){
+    this.onTurnOrder();  
 }
 
-function vsPlayer(){
+exports.vsPlayerEachFrame = function(){
     isBoardDrawn = true;
     
+    // draw the cards and update the field
+    drawCardInHand();
+    drawCardOnField();
+    
+    // draw Player Info
+    ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' + 
+    'Class: ' + chosenCharacter.class + '| ' + 'Name: ' + chosenCharacter.name + '|' + 
+    'Health: ' + playerHealth + '| '); 
 }
 
 // if a minion is down
@@ -221,7 +225,11 @@ exports.showInfoOnCard = function(card){
         ctx.clear();
         // clear the information and callback to its predecessor
         drawBoard();
-        this.eachFrame();
+        if(currentModeState == 'Training')
+            this.vsAIEachFrame();
+        else if(currentModeState == 'Play Game')
+            this.vsPlayerEachFrame();
+        
         return;
     }
     
@@ -274,13 +282,16 @@ exports.showSpells = function(key){
     var i,
         length = chosenCharacter.spells.length;
     
-    
     if(!isChoosingSpell){
         isInformationDrawn = false;
         ctx.clear();
         // clear the information and callback to its predecessor
         drawBoard();
-        this.eachFrame();
+        if(currentModeState == 'Training')
+            this.vsAIEachFrame();
+        else if(currentModeState == 'Play Game')
+            this.vsPlayerEachFrame();
+        
         return;
     }  
     
@@ -526,6 +537,7 @@ function endTurn(){
         // 3)
         if(mana < 10)
             mana+=1;
+
         playerMana = mana;
         enemyMana = mana;
         turnCount+=1;
@@ -537,10 +549,11 @@ function endTurn(){
         boons.activateBoons();
         
         // 6)
-       // ctx.point(width - 20, 3, '424242424242424242424242');
         handPriority = [];
     }
 }
+
+
 
 // coin 42 to decide who first
 function determineFirstPlayer(){

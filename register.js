@@ -5,18 +5,6 @@ exports.register = function(key){
     
     if(!isUsernameSet){
         variables.enterUsername();
-        
-        if(isUsernameSet){
-            var dbContent = JSON.parse(fs.readFileSync('alphaDummy.json'));
-            
-            var foundAt = variables.searchArray(pleaseWork['username'], username);
-                
-            if(foundAt != -1){
-                ctx.point(0, 2, 'The chosen username is taken');
-                isUsernameSet = false;
-                username = '';
-            }
-        }
     }
     
     else if(!isPasswordSet)
@@ -26,7 +14,8 @@ exports.register = function(key){
             isUsernameSet = false;
             isPasswordSet = false;
             
-            variables.postRequestUserData();
+            //variables.postRequestUserData();
+            socket.emit('Register', {username:username, password: password});
             currentLoginState = 'LoginMenu';
             ctx.point(0, 12, username + ' VS ' + password);
             username = '';

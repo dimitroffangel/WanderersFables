@@ -27,12 +27,15 @@ process.stdin.on('keypress', function(c, key) {
     if(isUserWriting)
         return;
     
-    if(key && key.ctrl && key.name == 'c')
+    if(key && key.ctrl && key.name == 'c'){
+        socket.emit('StateLoggedOut', {username:profileUsername, userID:userID,
+                                       state:userState});
+        socket.disconnect();
         process.stdin.pause();
+    }
     
     if(key){
         determineAfterAction(key);
-        key.name  = '';
       //  gameMenuLogic(key);
     }
 });
@@ -83,7 +86,14 @@ function determineAfterAction(key){
         currentModeState = differentOptions[currentModeIndex];
     
         if(currentModeState == 'Login Screen' || currentModeState == 'Friends'){
-            variables.getRequest();
+            socket.emit('LogIn', {username:profileUsername});
+            
+            socket.on('UserData', function(data){
+                pleaseWork = data.profile;
+                userState = pleaseWork['state'];
+            });
+            //console.log(pleaseWork['friends'] + ' ' + ' 424242424');
+            //variables.getRequest();
         }
     }
     
@@ -134,8 +144,9 @@ function determineAfterAction(key){
 function gameMenuLogic(key){
    /* if(pleaseWork){
         ctx.point(0, 5, key.name);
-    //    ctx.point(0, 5, pleaseWork['mama-Profile']['friends'][0]);
-    }*/
+       */ 
+    if(playerDecks[0] && playerDecks[0].deck)
+        ctx.point(0, 20, playerDecks[0].deck.length + ' ' + ' 42');
     // moving the cursor to another mode
     if(currentModeState == 'Login Screen' && loggedUsername == '')
         loginScreen.loginMenu(key);
@@ -156,7 +167,17 @@ function gameMenuLogic(key){
         if(!chosenCharacter || !userChosenDeck)
             characterSelect.chooseMenu(key);
         
-        if(chosenCharacter)
+        else if(chosenCharacter && userChosenDeck && !isBoardDrawn){
+            if(!isQueued){
+                socket.emit('QueuePlayGame', {username:profileUsername,userID:userID});
+                isQueued = true;
+            }
+            else{
+                socket.on('PlayGameFound', function(data){isGameFound = data.isFound;});
+            }
+        }
+        
+        else if(chosenCharacter && userChosenDeck && hasFoundGame)
             playGameInput.initializeGameInput(key);
     }
     

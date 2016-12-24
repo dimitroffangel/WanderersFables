@@ -258,6 +258,19 @@ function createDeck(key){
         if(forgeChosenOption == 'Change a card')
             forgeChosenOption = 'Rebuild a deck';
     }
+    
+    else if(key.name == 'backspace' && playerDecks[playerDecks.length-1].deck.length == 30){
+        var cardsNames = [];
+        for(var c = 0; c < playerDecks[indexOnDeck].deck.length; c+=1)
+            cardsNames.push(playerDecks[indexOnDeck].deck[c].name);
+        
+        //variables.postDeck(playerDecks[indexOnDeck]);
+        //playerDecks.push({name: deckName, deck:[], isUsable: false});
+
+        socket.emit('CreatedDeck',
+                    {username:profileUsername,userID: userID, deck: cardsNames,
+    deckName: playerDecks[indexOnDeck].name, isUsable:playerDecks[indexOnDeck].isUsable});
+    }
 }
 
 function deckHasCard(card, index){

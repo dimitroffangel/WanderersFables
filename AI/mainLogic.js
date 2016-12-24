@@ -247,7 +247,6 @@ function fillBasicDeck(){
     botDeck.push(jsonStringify(cardMaking.allCards[30]));
     botDeck.push(jsonStringify(cardMaking.allCards[36]));
     botDeck.push(jsonStringify(cardMaking.allCards[36])); 
-    variables.postDeck(botDeck);
 }
   
 // for spawning minion

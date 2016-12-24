@@ -5,10 +5,13 @@
     request = require('request'),
     http = require('http'),
     fs= require('fs'),
+    io= require('socket.io-client'),
+    socket = io.connect('http://localhost:1234', {reconnect: true});
     readline = require('readline'),
     // variables...
      countera99 =  0,
     rl = undefined,
+    isLogged = false,
     isUserWriting = false,
     escapeClicksCounter = 0,
     width = process.stdout.columns,
@@ -20,10 +23,12 @@
     // login variables
     pleaseWork = undefined,
     isDataLoaded = false,
+    isQueued = false,
     loggedUsername = '',
     profileUsername = '',
     userProfile= [],
     userID = undefined,
+    hasFoundGame = false,
     currentLoginState = 'LoginMenu',
     logInOptions = ['Log In', 'Register'],
     currentLoginIndex = 0,
@@ -60,7 +65,7 @@
     areCharactersDrawn = false, // you cannot see his/her skills
     createdCharacters = [],
     indexAtCharacter = 0,//when the player is starting the game he is choosing a character
-     enemyCharacter = {name:'Stamat', exp:undefined, class: undefined, level: undefined, spells:[]},
+    enemyCharacter = {name:'Stamat', exp:undefined, class: undefined, level: undefined, spells:[]},
     hasChosenCharacter = false,
     chosenCharacter = undefined,
     firstPlayer = undefined,
@@ -75,6 +80,7 @@
     // after-game things
     userGold = 0,
     wonRowGames = 0,
+    isGameFound = false,
     isGameFinished = false,
     //AI variables
      // choose difficulty
@@ -110,7 +116,7 @@
     //friendsVariables
     friendsOptions = ['Chat with a friend', 'Show friends', 'Send friend request', 
                       'Accept friend requests', 'Choose state'],
-    userState = 'online',
+    userState = '',
     stateOptions = ['Online', 'Offline', 'Do not disturb', 'Away'],
     friendIndex = 0,
     friendChosenOption = 'Friends Menu',
@@ -132,8 +138,6 @@ exports.searchArray = function(array, element){
         if(array[i] == element)
             return i;
     }
-    
-    return -1;
 }
 
 exports.searchPattern = function(text, pattern){
@@ -214,6 +218,23 @@ exports.enterPassword = function(){
     });
 }
 
+exports.enterText = function(question, showTerminal){
+    isUserWriting = true;
+      
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: showTerminal
+    });
+      
+    rl.question(question, function(answer){
+        inputFriendRequest = JSON.parse(JSON.stringify(answer));
+        isUserWriting = false;
+        rl = undefined;
+        countera99++;
+    });
+}
+
 // the body is parsed
 exports.getRequest = function(){
     isDataLoaded = false;
@@ -230,12 +251,68 @@ exports.getRequest = function(){
         res.on('data', function(chunk){
             body.push(chunk);
             body = Buffer.concat(body);
-            pleaseWork = clone(JSON.parse(body));
+          //  pleaseWork = this.clone(JSON.parse(body));
         });
         res.on('end', function(){
             isDataLoaded = true;
             console.log(new Date().getTime());
             return;
+        });
+    });
+}
+
+exports.getCharactersRequest = function(){
+    
+    var options = {
+        hostname: 'localhost',
+        port: '1234',
+        path: '/character',
+        agent: false,
+    };
+    
+    http.get(options, function(res){
+        body = [];
+        res.on('data', function(chunk){
+            body.push(chunk);
+            body = Buffer.concat(body);
+           // createdCharacters = this.clone(JSON.parse(body)[profileUsername + userID]);
+        });
+    });
+}
+
+exports.getDeckRequest = function(){
+    
+    var options = {
+        hostname: 'localhost',
+        port: '1234',
+        path: '/decks',
+        agent: false,
+    };
+    
+    http.get(options, function(res){
+        body = [];
+        res.on('data', function(chunk){
+            body.push(chunk);
+            body = Buffer.concat(body);
+           // playerDecks = clone(JSON.parse(body)[profileUsername + userID]);
+        });
+    });
+}
+
+exports.getQueueState = function(){
+    
+    var options  ={
+        hostname: 'localhost',
+        port: '1234',
+        path: '/' + currentModeState,
+        agent: false
+    };
+    
+    http.get(options, function(res){
+        body = [];
+        res.on('data', function(chunk){
+            body.push(chunk);
+            body = buffer.concat(body); 
         });
     });
 }
@@ -272,7 +349,6 @@ function clone(obj) {
         return copy;
     }
 }
-
 
 exports.postRequestUserData = function(){
     var options = {
@@ -313,15 +389,13 @@ exports.postRequestFriendRequest = function(requester, requesterID, reciever, re
     });
 }
 
-exports.postRequestAcceptFriend = function(concordant,concordantID,requester,requesterID){
+exports.postRequestAcceptFriend = function(concordant,requester){
     var options = {
         uri: 'http://localhost:1234/',
         method: 'POST',
         json:{
             "concordant":concordant,
-            "concordantID":concordantID,
-            "requester": requester,
-            "requesterID":requesterID
+            "requester": requester
         }
     };
     
@@ -386,5 +460,47 @@ exports.postDeck = function(deck){
     request(options, function(error, response, body){
         if(error)
             console.error(error);
+    });
+}
+
+exports.postCharacter = function(charName, charClass, exp, level, spells){
+    var options = {
+        uri: 'http://localhost:1234/',
+        method: 'POST',
+        json: {
+            "owner": profileUsername,
+            "ownerID": userID,
+            "character": charName,
+            "class": charClass,
+            "exp": exp,
+            "level": level,
+            "spells": spells
+        }
+    };
+    
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
+    });
+}
+
+// signed for Play Game or Arena
+exports.postQueue = function(signedFor){
+    var options = {
+        uri: 'http://localhost:1234/',
+        method: 'POST',
+        json: {
+            "user": profileUsername,
+            "userID": userID,
+            "signedFor": signedFor
+        }
+    };
+    
+    request(options, function(error, response, body){
+        if(error)
+            console.error(error);
+        
+        else
+            isQueued = true;
     });
 }

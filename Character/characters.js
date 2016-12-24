@@ -74,6 +74,20 @@ exports.createCharacter = function(key){
             // in order to bind him to its class script
             this.determineChampionClass
             (createdCharacters[createdCharacters.length - 1]);
+            
+            
+            
+            socket.emit('CreatedCharacters',{username:profileUsername, userID:userID,
+                         name:createdCharacters[createdCharacters.length - 1].name,
+                         class:createdCharacters[createdCharacters.length-1].class,
+                         exp:0,level:10,
+                         spells: createdCharacters[createdCharacters.length-1]
+                        });
+            /*variables.postCharacter(createdCharacters[createdCharacters.length - 1].name, 
+                                createdCharacters[createdCharacters.length - 1].class,
+                                0, 10, 
+                                createdCharacters[createdCharacters.length -1].spells);
+            */
         }
     
         userInput = ' ';

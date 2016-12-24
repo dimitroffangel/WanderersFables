@@ -12,7 +12,9 @@ function loadFunds(){
 
 
 function main(){
-    variables.getRequest();
+    socket.on('connect', function(data){});
+
+  //  variables.getRequest();
     loadFunds();
     //gameMenu.loadMenu();
 }
