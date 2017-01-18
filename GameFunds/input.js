@@ -2,20 +2,22 @@
 
 var 
     variables = require('./variables'),
-    cardVariables = require('./cardVariables'),
-    cardMaking = require('./cardMaking'),
-    loginScreen = require('../loginScreen'),
+    coreActions = require('./coreActions'),
+    cardVariables = require('../CardComponent/cardVariables'),
+    cardMaking = require('../CardComponent/cardMaking'),
+    loginScreen = require('../LogInScreen/loginScreen'),
     gameMenu = require('../GameMenu/gameMenu'),
     playGame = require('../GameMenu/playGame'),
     playGameInput = require('./playGameInput'),
     botLogic = require('../AI/mainLogic'),
     characters = require('../Character/characters'),
     characterSelect = require('../Character/characterSelect'),
-    forge = require('../Character/forge'),
+    forge = require('../GameMenu/forge'),
     training = require('../GameMenu/training'),
     options  = require('../GameMenu/options'),// requirements
     friends = require('../GameMenu/friends'),
-    lastWrittenText = '';
+    lastWrittenText = '',
+    nullKey = {name:undefined};
 
 variables.keypress(process.stdin);
 
@@ -28,18 +30,19 @@ process.stdin.on('keypress', function(c, key) {
         return;
     
     if(key && key.ctrl && key.name == 'c'){
-        socket.emit('StateLoggedOut', {username:profileUsername, userID:userID,
-                                       state:userState});
+        if(isLogged)
+            socket.emit('StateLoggedOut', {username:profileUsername, userID:userID,
+                                        state:userState});
+        clearInterval(eachFrame);   
         socket.disconnect();
         process.stdin.pause();
     }
     
-    if(key){
+    if(key)
         determineAfterAction(key);
-      //  gameMenuLogic(key);
-    }
 });
 
+var eachFrame = setInterval(function(){determineAfterAction(nullKey);}, 500);
 
 function showGuide(){
     ctx.clear();
@@ -86,14 +89,12 @@ function determineAfterAction(key){
         currentModeState = differentOptions[currentModeIndex];
     
         if(currentModeState == 'Login Screen' || currentModeState == 'Friends'){
-            socket.emit('LogIn', {username:profileUsername});
+            socket.emit('updateUserData', {username:profileUsername, userID:userID});
             
-            socket.on('UserData', function(data){
+            socket.on('newUserData', function(data){
                 pleaseWork = data.profile;
                 userState = pleaseWork['state'];
             });
-            //console.log(pleaseWork['friends'] + ' ' + ' 424242424');
-            //variables.getRequest();
         }
     }
     
@@ -135,18 +136,20 @@ function determineAfterAction(key){
     }
     
     gameMenuLogic(key);
-    if(currentModeState != 'Login Screen')
-        writeText(width - 20,0, differentOptions[currentModeIndex]);
-    else
-        writeText(width - 20,0, 'Login Screen');
+    if(currentModeState == 'Friends')
+        coreActions.writeText(width - 32, 1,'Hello ' + profileUsername+userID);
+    else if(currentModeState != 'Login Screen' && currentModeState != 'Play Game' && 
+       currentModeState != 'Arena' && currentModeState != 'Training')
+        coreActions.writeText(width - 20,0, differentOptions[currentModeIndex]);
+    else if(currentModeState == 'Login Screen')
+        coreActions.writeText(width - 20,0, 'Login Screen');
 }
 
 function gameMenuLogic(key){
-   /* if(pleaseWork){
-        ctx.point(0, 5, key.name);
-       */ 
-    if(playerDecks[0] && playerDecks[0].deck)
-        ctx.point(0, 20, playerDecks[0].deck.length + ' ' + ' 42');
+    if(isUserWriting)
+        return;
+    
+    ctx.point(width - 20, 3, playerTaunts + 'PTOF');
     // moving the cursor to another mode
     if(currentModeState == 'Login Screen' && loggedUsername == '')
         loginScreen.loginMenu(key);
@@ -169,16 +172,47 @@ function gameMenuLogic(key){
         
         else if(chosenCharacter && userChosenDeck && !isBoardDrawn){
             if(!isQueued){
+                ctx.point(0, 12, 'Searching for a mess less than you'); 
                 socket.emit('QueuePlayGame', {username:profileUsername,userID:userID});
                 isQueued = true;
             }
-            else{
-                socket.on('PlayGameFound', function(data){isGameFound = data.isFound;});
+            else if(isQueued){
+                socket.on('matchFound', function(data){
+                    isGameFound = data.isFound;  
+                    
+                    ctx.point(width - 20, 14, 'mama' + ' ' + isGameFound);
+                    
+                    if(!isGameFound){
+                        isQueued = false;
+                        currentModeState = 'Game Menu';
+                        chosenCharacter = undefined;
+                        userChosenDeck = undefined;
+                        gameMenu.loadMenu();
+                        ctx.point(0, 2, 'No Opponent found' + data.isFound);
+                    }
+                    
+                    else{
+                        socket.emit('initGame', 
+                        {username:profileUsername,userID:userID
+                         ,deck:variables.encodeDeck(userChosenDeck)});
+                        
+                        socket.on('placement', function(data){
+                            gameOrder = data.gameOrder;
+                            playerIndex = data.player;   
+                            
+                            if(playerIndex == 1)
+                                hasPlayerTurnEnded = true;
+                        });
+                    }
+                });
             }
         }
         
-        else if(chosenCharacter && userChosenDeck && hasFoundGame)
+        if(chosenCharacter && userChosenDeck && isGameFound){
+            ctx.point(width - 20, 16, 'gmaeFound');
             playGameInput.initializeGameInput(key);
+        }
+        
     }
     
     else if(currentModeState == 'Alter of Heroes')
@@ -195,7 +229,7 @@ function gameMenuLogic(key){
             botLogic.chooseBot(key);
         
         if(chosenCharacter && hasChosenOpponentDeck)
-            playGameInput.initializeGameInput(key);   
+             playGameInput.initializeGameInput(key);   
     }
     
     else if(currentModeState == 'Friends')
@@ -221,21 +255,18 @@ function afterPlayGame(){
         indexOnSpell = 0;
         hasPlayerTurnEnded = false;
         hasEnemyTurnEnded = false;
-        hasTurnEnded = false;
         markedField = undefined;
         removeFieldAt = NaN;
         initialHealth = 42;
-        enemyPlayerHealth = 42;
-        playerHealth = initialHealth + 1000;
+        enemyPlayerHealth = initialHealth;
+        playerHealth = initialHealth;
         mana = 1;
         turnCount = 1;
         playerMana = 10;
         enemyMana = mana; 
         areCharactersDrawn = false;
         indexAtCharacter = 0;
-        hasChosenCharacter = false;
-        chosenCharacter = undefined,
-        chosenDeck = undefined,
+        chosenCharacter = undefined;
         firstPlayer = undefined;
         lastKeyEntered = ' ';
         userInput = ' ';
@@ -250,22 +281,21 @@ function afterPlayGame(){
         handPriority = [];
         attackPriority = [];
         botDeck = [];
+        userChosenDeck = undefined;
         battleDone = [];
         
         // card variables
-        playerFieldVectors = []; 
-        playerCardsOnField = 0;
-        enemyFieldVectors = [];
-        enemyCardsOnField = 0;
-        enemyTauntsOnField = 0;
-        playerTauntsOnField = 0;
+        playerFields = []; 
+        playerSpawnedCards = 0;
+        enemyFields = [];
+        enemySpawnedCards = 0;
+        enemyTaunts = 0;
+        playerTaunts = 0;
         attackedFromFields = []; 
-        playerCardsVectors = [];
-        playerBonusCards = [];  
-        enemyCardsVectors = [];
-        showingPlayerVector = 'main';
-        playerCardsInDeck = 30;
-        botCardsInDeck = 30;
+        playerHand = [];
+        playerBonusHand = [];  
+        enemyHand = [];
+        showingPlayerHand = 'main';
         cursorField = 'hand'; 
         cursorIndex = 0;
         markedCardCursor = 0;
@@ -274,6 +304,7 @@ function afterPlayGame(){
         bleedingTargets = [];
         vulnerableTargets = [];
         immobileTargets = [];
+        isShatteringField = false;
         isKnockingCard = false;
         changingFieldIndex = undefined; 
         isChangingMobStats = false;
@@ -282,20 +313,6 @@ function afterPlayGame(){
         uniqCards = [];
         summonnedUniqCards = [];
         isOgdenDead =  false;
-}
-
-function writeText(x,y,text){
-    
-    if(lastWrittenText != ''){
-        var i,
-            length = lastWrittenText.length;
-        for(i = 0; i <= length; i++){
-            ctx.point(x + i,y, ' ');
-        }
-    }
-    ctx.point(x,y, text);
-    lastWrittenText = text;
-
 }
 
 // Mouse input

@@ -20,7 +20,11 @@
 21.$ make the game's size equal to every console standard.-> done
 23.$ decide to make array of username, password... instead of a string-> done
 24.$ make variety of player state(online, away, busy, offline)-> done
-
+25.$ add what the player must do right now (to knock down card...) -> done
+26. check the variety of server attacks
+27. do activateUniqEnemyCards
+28. send data when character attacks, unleashes spells
+29. increment player/enemy taunts on field when initializing card
 
 Play game:{
     state becomes "in game"
@@ -28,8 +32,6 @@ Play game:{
     post: user2:chosencharacter, level, health, cards, cards on field, mana
     in file user1_user2.json
 }
-
-state: send on every click when visualising friend's profile show his current state
 
 chat{
     onMakingFriendship: add:requester-reciever in chat array in the database
@@ -40,24 +42,5 @@ chat{
     Chat will be firstly printing all messages written before from the two of em and it will have a vision of the froge deck making
     upload a file?
 }
-
-Game variables to send
-variables.js:
-    hasPlayerTurnEnded,
-    playerHealth,
-    playerMana,
-    firstPlayer,
-    playerDeck,
-
-cardVariables.js:
-    playerFieldVectors,
-    playerCardsOnField,
-    playerTauntsOnField,
-    playerCardVectors,
-    playerBonusCards,
-    playerCardsInDeck
-    attackingFromFields,
-    bleedingTargets = [],
-    vulnerableTargets = [],
-    immobileTargets = [],
-    isOgdenDead,
+    
+function to be in the core activities    

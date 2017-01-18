@@ -1,9 +1,12 @@
 // importing variables
 var variables = require('../GameFunds/variables'),
-    cardVariables =require('../GameFunds/cardVariables'),
-    cardMaking = require('../GameFunds/cardMaking'),
-    setCardSpecialities = require('../GameFunds/setCardSpecialities'),
+    coreActions = require('../GameFunds/coreActions'),
+    gameMenu = require('./gameMenu'),
+    cardVariables =require('../CardComponent/cardVariables'),
+    cardMaking = require('../CardComponent/cardMaking'),
+    setCardSpecialities = require('../CardComponent/setCardSpecialities'),
     boons = require('../Character/boons'),
+    elementalistCasting = require('../ClassSkillTrees/elementalistCasting'),
     experience = require('../Character/updateExp'),
     mainLogic = require('../AI/mainLogic.js');
 
@@ -32,37 +35,171 @@ exports.vsAIEachFrame = function(){
     isBoardDrawn = true;
     // draw the cards and update the field
     drawCardInHand();
-    drawCardOnField();
+    drawCardOnField();   
     
     // draw Player Info
-    ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' + 
-    'Class: ' + chosenCharacter.class + '| ' + 'Name: ' + chosenCharacter.name + '|' + 
-    'Health: ' + playerHealth + '| '); 
+    ctx.point(0, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana+ '| Name: ' + 
+              chosenCharacter.name + '| Health: ' + playerHealth + '| Armor: ' + 
+              playerArmor + '| Traps: ' + playerTrapsCasted.length); 
     
     this.onTurnOrder();  
 }
-
+    
 exports.vsPlayerEachFrame = function(){
     isBoardDrawn = true;
     
     // draw the cards and update the field
     drawCardInHand();
-    drawCardOnField();
+    drawCardOnField();   
+    
+    if(hasPlayerTurnEnded){
+        onTurnStart();
+        
+        if(hasPlayerTurnEnded)
+            enemySentData();
+    }
     
     // draw Player Info
-    ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' + 
-    'Class: ' + chosenCharacter.class + '| ' + 'Name: ' + chosenCharacter.name + '|' + 
-    'Health: ' + playerHealth + '| '); 
+    ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' +
+              '| '+'Name: ' + chosenCharacter.name + '|' + 'Health: ' + playerHealth + '| '); 
+}
+
+function enemySentData(){
+    
+    socket.emit('playerRequestData',{gameOrder:gameOrder,playerIndex:playerIndex});
+    
+    socket.on('battleReport'+profileUsername+userID, function(data, fn){                
+        // 1)-> enemy has spawned card
+        for(var i =0; i< data.enemyFields.length; i+=1){
+            if(data.enemyFields[i] && data.enemyFields[i] != '' && !enemyFields[i].card){
+                var cardIndex = findCard(data.enemyFields[i]);
+                
+                enemyFields[i].card=JSON.parse(JSON.stringify(
+                    cardMaking.allCards[cardIndex]));
+                coreActions.isCardUniq(enemyFields[i].card, i, 'enemy');
+                setCardSpecialities.setCardSpecials(enemyFields[i].card, 'enemy');
+    
+                // 1.5) -> enemy card has speciality (knock/swap/change
+                if(data.cardCan != ''){
+                    changingFieldIndex = data.changingFieldIndex;
+                    ctx.point(width - 20, 2, changingFieldIndex + '@');
+                    if(data.cardCan == 'knock')
+                        isKnockingCard = true;
+                    else if(data.cardCan == 'swap')
+                        isSwappingMinionStats = true;
+                    else if(data.cardCan == 'changeStats')
+                        isChangingMobStats = true;
+                    else if(data.cardCan == 'shatter')
+                        isShatteringField = true;
+                    var onField;
+                    // the enemy enemy is user
+                    if(data.onField == 'enemyField')
+                        onField = 'playerField';
+                    else if(data.onField == 'playerField')
+                        onField = 'enemyField';
+                    boons.gameActions(onField, data.onIndex);
+                }
+                fn(true);
+            }
+        }
+        // enemy has casted a spell
+        if(data.cursorPosition != -1 && data.markedCursor != ''){
+            enemyCharacter = data.character;
+            //ctx.positions(width - 20, 4, data.character.spells[0].name + ' NM');
+            elementalistCasting.castChosenSpell(data.spellIndex,enemyCharacter,
+                                             data.markedCursor,data.cursorPosition);
+            fn(true);
+        }
+        // 2)-> enemy has attacked
+        // if the fields are empty there is nothing to report
+        if(data.defenderField == NaN || data.attackerField == NaN){
+            fn(true);
+                return;
+        }
+            // the opponent desires to attack his hero(userPlayer) 
+            // so here he attacks the enemy opponent(himself) :D
+        if(data.defenderFieldName == 'userCharacter'){
+            var attacker = enemyFields[data.attackerField];
+            if(!attacker || !attacker.card || coreActions.hasAttacked(attacker))
+                return;
+            enemyBattleInfo.health = playerHealth;
+            coreActions.attackEnemyChief(attacker, enemyCharacter, 
+                                         enemyPlayerHealth, 'enemy');
+            
+            ctx.point(width - 20, 2, 'Attacking enemyPlayer');
+        }
+        // desires to attack the other playerCharacter
+        else if(data.defenderFieldName == 'enemyCharacter'){
+            var attacker = enemyFields[data.attackerField];
+            if(!attacker || !attacker.card || 
+               coreActions.hasAttacked(attacker))
+                return;
+            
+            coreActions.attackEnemyChief(attacker, chosenCharacter,
+                                         playerHealth, 'userPlayer');
+        }
+        //battle between two minions/cards//
+        else if(data.defenderFieldName == 'enemyField'){
+            var attacker = enemyFields[data.attackerField],
+                defender = playerFields[data.defenderField];
+            if(!attacker || !defender ||
+               !attacker.card || !defender.card || coreActions.hasAttacked(attacker))
+                return;
+            
+            coreActions.cardsBattle(attacker,defender, false, data.defenderField);
+            ctx.point(width - 20, 2, 'Attacking between minions');
+        }
+        // attack the field to the already attacked
+        
+        fn(true);
+    });
+}
+
+function onTurnStart(){
+    // send data to server
+    
+    socket.emit('requestStartTurn', {gameOrder:gameOrder,playerIndex:playerIndex});
+    
+    socket.on('startTurn'+profileUsername+userID, function(data){
+              enemyTaunts= data.playerTauntsOfFiled;
+            
+        hasPlayerTurnEnded = false;
+        attackFromFields=data.attackedFromFields;
+        enemyHand=data.playerHand;
+        
+        if(playerIndex == 0)
+            attackedFromFields = [];
+    });
+}
+
+exports.onTurnEnd = function(){
+    // send data to server
+    
+    turnCount+=1;
+    battleDone += 'Turn ' + turnCount + '\n';
+    mana+=1;
+    playerMana=mana;
+    enemyMana=mana;
+    boons.activateBoons();
+    
+    if(playerIndex == 1)
+        attackedFromFields = [];
+    
+    socket.emit('endTurn', {username:profileUsername,userID:userID,
+                            gameOrder:gameOrder,playerIndex:playerIndex,
+                            playerHand: playerHand.concat(playerBonusHand),
+                           });
+    drawCards(1, 1);
 }
 
 // if a minion is down
 exports.removeField = function(removeAt){
     var index;
     
-    if(showingPlayerVector == 'main')
-        index = playerCardsVectors.length - removeAt;
+    if(showingPlayerHand == 'main')
+        index = playerHand.length - removeAt;
     else
-        index = playerBonusCards.length - removeAt;
+        index = playerBonusHand.length - removeAt;
     
     var fieldX = cardFieldInitX + index * width*0.167 + 1;
     ctx.box(fieldX, cardHandInitY + cardHeight + (height* 0.03), cardWidth, cardHeight);
@@ -71,88 +208,24 @@ exports.removeField = function(removeAt){
 exports.updateHand = function(){
     var firstBonusEl;
     
-    if(playerBonusCards.length == 0 || playerCardsVectors.length < 6)
+    if(playerBonusHand.length == 0 || playerHand.length < 6)
         return;
     
-    firstBonusEl = playerBonusCards[0];
+    firstBonusEl = playerBonusHand[0];
     
     var i,
-        length = playerBonusCards.length;
+        length = playerBonusHand.length;
     
     for(i = 0; i < length; i+=1)
-        playerBonusCards[i] = playerBonusCards[i + 1];
+        playerBonusHand[i] = playerBonusHand[i + 1];
     
-    playerBonusCards.splice(length - 1, 1);
+    playerBonusHand.splice(length - 1, 1);
     
-    playerCardsVectors.push(firstBonusEl);
+    playerHand.push(firstBonusEl);
 }
 
 exports.updateOwnMana = function(by){
     playerMana += by;
-}
-
-exports.attackBetweenMinions = function(playerCreature, enemyCreature){
-    if(!playerCreature.card ||
-       !enemyCreature.card ||
-        playerCreature.card.turnSpawn == turnCount ||
-        playerCreature.isDisabled)
-        return;
-    
-    if(enemyCreature.card.canBlock)
-        enemyCreature.card.canBlock = 0;
-    
-    else{
-        enemyCreature.card.defence -= playerCreature.card.attack;
-    
-        if(enemyCreature.card.canEnrage)
-            setCardSpecialities.setCardSpecials(enemyCreature.card, 'enemy'); 
-    }
-    
-    if(playerCreature.card.canBlock)
-        playerCreature.card.canBlock = 0;
-    
-    else{
-        playerCreature.card.defence -= enemyCreature.card.attack;
-        
-        
-        if(playerCreature.card.canEnrage)
-            setCardSpecialities.setCardSpecials(playerCreature.card, 'player');
-    }
-    
-    // if the card is dead destroy the card
-    
-    areBattlersDead(playerCreature, enemyCreature);
-    
-    if(enemyCreature.card &&
-       playerCreature.card &&
-       playerCreature.card.canImmobile)
-        immobileTargets.push({card:enemyCreature.card, onTurn: turnCount}); 
-}
-
-exports.attackEnemyPlayer = function(playerCreature){
-    if(!playerCreature.card ||
-       playerCreature.card.defence <= 0 ||
-       playerCreature.isDisabled)
-        return;
-    
-    if(enemyCharacter.canBlock)
-        enemyCharacter.canBlock = 0;
-    
-    else{    
-        enemyPlayerHealth -= playerCreature.card.attack;  
-        
-        if(enemyCharacter.damage){
-            playerCreature.card.defence -= enemyCharacter.damage;
-            
-            if(playerCreature.card.canEnrage)
-                setCardSpecialities.setCardSpecials(playerCreature.card, 'player');
-        }
-    }
-    
-    if(enemyPlayerHealth > 0 && 
-       playerCreature.card &&
-       playerCreature.card.canImmobile)
-        immobileTargets.push({card:enemyCharacter, onTurn: turnCount});
 }
 
 exports.loadAfterGame = function(key){
@@ -160,7 +233,6 @@ exports.loadAfterGame = function(key){
         currentModeIndex = 0;
         currentModeState = 'Game Menu';
         gameMenu.loadMenu();
-        hasChosenCharacter = false;
         isGameFinished = false;
     }
 }
@@ -276,7 +348,7 @@ exports.showInfoOnCard = function(card){
 }
 
 exports.showSpells = function(key){
-   
+   var ySpellPosition = 0;
     // same as the information on the card
     // 1)
     var i,
@@ -301,7 +373,7 @@ exports.showSpells = function(key){
     else if(key.name == 'down' && indexOnSpell < length - 1)
         indexOnSpell +=1; 
     
-    writeText(0, ySpellPosition + 1, chosenCharacter.spells[indexOnSpell].name);
+    coreActions.writeText(0,ySpellPosition+ 2,chosenCharacter.spells[indexOnSpell].name);
     
     if(isInformationDrawn)
         return;
@@ -330,7 +402,7 @@ exports.onTurnOrder = function(){
         isBoardDrawn = true;
         // draw the cards and update the field
     
-        if(hasEnemyTurnEnded){       
+        if(hasEnemyTurnEnded){
             
             if(hasPlayerTurnEnded){
                 endTurn();
@@ -362,8 +434,9 @@ function drawBoard(){
         var currentX = i*width*0.167 + 1;
         //var currentY =  cardFieldInitY - 10;
         ctx.box(currentX, enemyFieldY, cardWidth, cardHeight);
-        enemyFieldVectors
-            .push({x:currentX,y:enemyFieldY,card:undefined,isDisabled: false});
+        enemyFields
+            .push({x:currentX,y:enemyFieldY,card:undefined,isDisabled: false, 
+                   isBurning:false});
         ctx.cursor.restore();
     }
     
@@ -378,7 +451,7 @@ function drawBoard(){
         var currentX = i*width*0.167 + 1;
         
         ctx.box(currentX, cardFieldInitY, cardWidth, cardHeight);
-        playerFieldVectors
+        playerFields
             .push({x:currentX, y:cardFieldInitY, card:undefined, isDisabled: false});
         ctx.cursor.restore();
     }
@@ -394,21 +467,20 @@ function drawCards(amountOfPlayerCards, amountOfEnemyCards){
     
     while(playerIndex++ < amountOfPlayerCards){
         
-        var index = Math.round(Math.random() * (userChosenDeck.deck.length -1));
-        var randomCard = JSON.parse(JSON.stringify(userChosenDeck.deck[index]));
+        if(userChosenDeck.length == 0)
+            return;
+        var randomCard = JSON.parse(JSON.stringify(userChosenDeck[0]));
         
        // randomCard.defence += 1000;
-        if(playerCardsVectors.length < 6)
-            playerCardsVectors.push(randomCard);
+        if(playerHand.length < 6)
+            playerHand.push(randomCard);
         
         // if the main vector is full transfer the cards to the bonus
-        else if(playerBonusCards.length < 4)
-            playerBonusCards.push(randomCard);
-        
-        playerDecks.splice(index, 1);
-        
+        else if(playerBonusHand.length < 4)
+            playerBonusHand.push(randomCard);
+
         // decrease player's cards
-        cardVariables.playerCardsInDeck--;
+        userChosenDeck.splice(0, 1);        
     }
     
     while(botIndex++ < amountOfEnemyCards){
@@ -416,45 +488,39 @@ function drawCards(amountOfPlayerCards, amountOfEnemyCards){
             return;
         }
         
-        var randomIndex = Math.round(Math.random() * (botDeck.length - 1));
-        var randomCard = botDeck[randomIndex];
+        var randomCard = botDeck[0];
         ctx.point(botDeck[0].name);
         //delete the card from the deck
-        botDeck.splice(randomIndex, 1);
+        botDeck.splice(0, 1);
         
-        if(enemyCardsVectors.length < 10)
-            enemyCardsVectors.push(randomCard);
+        if(enemyHand.length < 10)
+            enemyHand.push(randomCard);
     }
 } 
 
 function drawInitialCards(){
-    playerCardsVectors.push(JSON.parse(JSON.stringify(cardMaking.allCards[0])));
-    playerCardsVectors[0].attack = 100;
-    playerCardsVectors[0].canImmobile = 1;
-    playerCardsVectors[0].canKnockdown = 1;
-    playerCardsVectors[0].canWindfury = 2;
-    var indexCard = findCard('War Minister Shokov');
-    playerCardsVectors
-        .push(JSON.parse(JSON.stringify(
-        cardMaking.allCards[indexCard])));
-    playerCardsVectors[1].defence = 100;
-    
-    ctx.point(playerCardsVectors[0].name);
+    playerHand.push(cardMaking.allCards[findCard('Priest of Dwayna')]);
+    playerHand.push(cardMaking.allCards[findCard('Zommoros')]);
+    playerHand.push(cardMaking.allCards[findCard('Ert and Burt')]);
+    playerHand.push(cardMaking.allCards[2]);
     drawCards(6, 6);
 } // stupid enough but draw is taking a card
 
 function drawCardInHand(){ 
     
-    if(showingPlayerVector == 'main')
-        drawPlayerCards(playerCardsVectors);
+    if(showingPlayerHand == 'main')
+        drawPlayerCards(playerHand);
     
     else
-        drawPlayerCards(playerBonusCards);
+        drawPlayerCards(playerBonusHand);
 }
 
 function drawPlayerCards(vector){
     for(i = 0; i < vector.length; i+=1){
         var currentCard = vector[i];
+ 
+        if(!currentCard)
+            continue;
         
         var currentX =  i*width*0.167 + 1,
             currentY =  cardHandInitY;
@@ -482,7 +548,7 @@ function drawCardOnField(){
     
     //enemy
     for(i = 0; i < fieldLength; i+=1){
-        var currentField = enemyFieldVectors[i];
+        var currentField = enemyFields[i];
         
         if(!currentField.card)
             continue;
@@ -501,7 +567,7 @@ function drawCardOnField(){
     
     //player
     for(i = 0; i < fieldLength; i+=1){
-        var currentField = playerFieldVectors[i];
+        var currentField = playerFields[i];
         
         if(!currentField.card)
             continue;
@@ -520,7 +586,7 @@ function drawCardOnField(){
 
 function endTurn(){
     if(hasPlayerTurnEnded && hasEnemyTurnEnded){
-        // 1) hasPlayerTurnEnded & hasEnemyTurnEnded = 1
+        // 1) and write it in the gameReport hasPlayerTurnEnded & hasEnemyTurnEnded = 1
         // 2) Increase mana
         // 3) Increase the turn count
         // 4) allow the attackers to strike once more
@@ -528,6 +594,7 @@ function endTurn(){
         // 6) botPriority card is reset to undefined
 
         //1)
+        battleDone += 'Turn ' + turnCount +  '\n';
         hasPlayerTurnEnded = false;
         hasEnemyTurnEnded = false;
         
@@ -546,14 +613,11 @@ function endTurn(){
         attackedFromFields = [];
         
         // 5)
-        boons.activateBoons();
-        
+        boons.activateBoons();    
         // 6)
         handPriority = [];
     }
 }
-
-
 
 // coin 42 to decide who first
 function determineFirstPlayer(){
@@ -563,38 +627,6 @@ function determineFirstPlayer(){
         firstPlayer = 'enemyPlayer';
     else
         firstPlayer = 'userPlayer';
-}
-
-function areBattlersDead(playerCreature, enemyCreature){
-    if(!enemyCreature || !playerCreature)
-        return;
-    
-    if(enemyCreature.card.defence <= 0){
-        if(enemyCreature.card.isTaunt)
-            enemyTauntsOnField-=1;
-        
-        
-        enemyCreature.card = undefined;
-        
-        ctx.fg(255, 0, 0);
-        ctx.box(enemyCreature.x, enemyCreature.y, cardWidth, cardHeight);
-        ctx.cursor.restore();
-        
-        enemyCardsOnField -= 1;
-    }
-    
-    if(playerCreature.card.defence <= 0){
-        if(playerCreature.card.isTaunt)
-            playerTauntsOnField -= 1;
-        
-        playerCreature.card = undefined;
-        
-        ctx.fg(255, 0, 0);
-        ctx.box(playerCreature.x, playerCreature.y, cardWidth, cardHeight);
-        ctx.cursor.restore();
-        
-        playerCardsOnField -=1;
-    }
 }
 
 function findCard(cardName){
@@ -607,20 +639,4 @@ function findCard(cardName){
     }
     
     Error('find card in play game has undefined argument');
-}
-
-var lastWrittenText ='',
-    ySpellPosition;
-
-function writeText(x,y,text){
-    
-    if(lastWrittenText != ''){
-        var i,
-            length = lastWrittenText.length;
-        for(i = text.length - 1; i <= length; i++){
-            ctx.point(x + i,y, ' ');
-        }
-    }
-    ctx.point(x,y, text);
-    lastWrittenText = text;
 }

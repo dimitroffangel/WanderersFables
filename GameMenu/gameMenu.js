@@ -3,6 +3,7 @@ var variables = require('../GameFunds/variables');
 exports.loadMenu = function (){   
     ctx.clear();
     drawMenuOptions();
+    
     ctx.point(width - 20, 0, differentOptions[currentModeIndex]);
 }
 

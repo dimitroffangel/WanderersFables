@@ -1,8 +1,9 @@
 // importing
 var
     variables = require('../GameFunds/variables'),
-    cardVariables = require('./cardVariables'),
-    setCardSpecialities = require('./setCardSpecialities'),
+    coreActions = require('../GameFunds/coreActions'),
+    cardVariables = require('../CardComponent/cardVariables'),
+    setCardSpecialities = require('../CardComponent/setCardSpecialities'),
     boons = require('../Character/boons'),
     playGame = require('../GameMenu/playGame'),
     elementalistCasting = require('../ClassSkillTrees/elementalistCasting');
@@ -17,11 +18,11 @@ exports.initializeGameInput = function(key){
         playGame.beginGame();
     
     // if the the main cardVector is full switch to the bonus
-    var currentUsedVector = undefined;
-    if(showingPlayerVector == 'main')
-        currentUsedVector = playerCardsVectors;
+    var currentUsedVector;
+    if(showingPlayerHand == 'main')
+        currentUsedVector = playerHand;
     else
-     currentUsedVector = playerBonusCards;
+        currentUsedVector = playerBonusHand;
 
     this.playGameLogic(key, currentUsedVector);
 
@@ -40,12 +41,34 @@ exports.initializeGameInput = function(key){
     
     if(infoOnCard)
             playGame.showInfoOnCard(infoOnCard);
-                                 
-    writeText(0, 2 , 'Mana: ' + playerMana + ' Turn: ' + turnCount);
+                    
+    
+    var playerIs = ' You are ';
+    if(isKnockingCard)
+        playerIs = 'knocking a card';
+    else if(isSwappingMinionStats)
+        playerIs = 'swapping minion stats';
+    else if(isChangingMobStats)
+        playerIs = 'changing mobs stats';
+    else if(isShatteringField)
+        playerIs = 'shattering a field';
+    else
+        playerIs = '';
+    
+    
+    coreActions.writeText(0, 2 , 'Mana: ' + playerMana + 
+                          ' Turn: ' + turnCount + playerIs);
 } 
 
 exports.playGameLogic = function(key, vector){
-   writeText(0, 1, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
+    var turnOn;
+    if(hasPlayerTurnEnded)
+        turnOn = ' Opponent turn';
+    else
+        turnOn=' Yer" turn';
+
+   coreActions.writeText(0, 1, 'Cursor on: ' + cursorField + 
+                         ' marked: ' + (cursorIndex + 1)+ turnOn);  
     
     // 1) Enter
     //  a) the marked card is chosen
@@ -59,7 +82,8 @@ exports.playGameLogic = function(key, vector){
     // player ready to end the turn
     if(key.name == 'm' && !hasPlayerTurnEnded){
         hasPlayerTurnEnded = true;
-        activatePlayerUniqCards();
+        if(currentModeState == 'Play Game')
+            playGame.onTurnEnd();
     }
     
     // choose spell
@@ -67,6 +91,7 @@ exports.playGameLogic = function(key, vector){
         if(isChoosingSpell){
             isChoosingSpell = false;
             playGame.showSpells(key);
+            return;
             //call the function to clear everything
         }
         else
@@ -104,16 +129,16 @@ exports.playGameLogic = function(key, vector){
             infoOnCard = vector[cursorIndex];     
         
         else if(cursorField == 'playerField')
-            infoOnCard = playerFieldVectors[cursorIndex].card;
+            infoOnCard = playerFields[cursorIndex].card;
         
         else if(cursorField == 'enemyField')
-            infoOnCard = enemyFieldVectors[cursorIndex].card;
+            infoOnCard = enemyFields[cursorIndex].card;
         
         else if(cursorField == 'playerChampion')
             infoOnCard = 'player';
     }
     
-    //enter
+    //enter pressed
     returnPressed(key, vector);
     
     if(key.name == 'backspace'){
@@ -132,24 +157,28 @@ exports.playGameLogic = function(key, vector){
             cursorIndex = 0;
         }
         
-        else if((isKnockingCard || isChangingMobStats || isSwappingMinionStats)
-                && !hasPlayerTurnEnded){
+        // the card with the ability to either knock/change/swap other minion stats is back 
+        // in the initial spawner hand
+        else if((isKnockingCard || isChangingMobStats || 
+                 isSwappingMinionStats ||  isShatteringField) && 
+                !hasPlayerTurnEnded){
             
-            if(playerCardsVectors.length < 6)
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
-            else if(playerBonusCards.length < 4)
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
+            if(playerHand.length < 6)
+                playerHand.push(playerFields[changingFieldIndex].card);
+            else if(playerBonusHand.length < 4)
+                playerHand.push(playerFields[changingFieldIndex].card);
             
-            playerFieldVectors[changingFieldIndex].card = undefined;
+            playerFields[changingFieldIndex].card = undefined;
             ctx.fg(255, 0, 0);
-            ctx.box(playerFieldVectors[changingFieldIndex].x, 
-                    playerFieldVectors[changingFieldIndex].y, 
+            ctx.box(playerFields[changingFieldIndex].x, 
+                    playerFields[changingFieldIndex].y, 
                     cardWidth, cardHeight);
             ctx.cursor.restore();
             
             isKnockingCard = false;
             isChangingMobStats = false;
             isSwappingMinionStats = false;
+            isShatteringField = false;
         }
     }
     
@@ -160,15 +189,15 @@ exports.playGameLogic = function(key, vector){
                 cursorIndex--;
         
             else if(cursorIndex == 0 &&
-                    showingPlayerVector == 'bonus'){
+                    showingPlayerHand == 'bonus'){
                 
-                 if(playerCardsVectors.length < playerBonusCards.length){
+                 if(playerHand.length < playerBonusHand.length){
                     var removeAt = 0;
                     while(removeAt++ <= vector.length)
                         playGame.removeField(removeAt);
                  }
-                    showingPlayerVector = 'main';
-                    cursorIndex = playerCardsVectors.length - 1;  
+                    showingPlayerHand = 'main';
+                    cursorIndex = playerHand.length - 1;  
             }
     }
         
@@ -180,7 +209,7 @@ exports.playGameLogic = function(key, vector){
         
         else if(cursorField == 'hand' && cursorIndex < vector.length){
             
-            if(showingPlayerVector == 'main' &&
+            if(showingPlayerHand == 'main' &&
                cursorIndex == vector.length - 1){
                 // 1) change the vector card
                 // 2) delete the card/s in the previous vector
@@ -189,7 +218,7 @@ exports.playGameLogic = function(key, vector){
                 while(removeAt <= vector.length)
                     playGame.removeField(removeAt++);
                 
-                showingPlayerVector = 'bonus';
+                showingPlayerHand = 'bonus';
                 cursorIndex= 0;
             }
             
@@ -199,10 +228,9 @@ exports.playGameLogic = function(key, vector){
         }
     }
     
-    else if(key.name == 'up' && 
-            cursorField != 'playerField' &&
-            cursorField != 'enemyField' &&
-            cursorField != 'enemyCharacter'){
+    else if(key.name == 'up' && cursorField != 'playerField' && 
+            cursorField != 'enemyField' && cursorField != 'enemyCharacter' &&
+            !isChoosingSpell){
         cursorField = 'playerField';
         cursorIndex = 0;
     }
@@ -211,12 +239,9 @@ exports.playGameLogic = function(key, vector){
             cursorField == 'enemyField')
         cursorField = 'enemyCharacter';
     
-    else if(key.name == 'up' &&
-            cursorField == 'playerField' && 
-            (isCastingSpell ||
-            isKnockingCard ||
-            isChangingMobStats ||
-            isSwappingMinionStats))
+    else if(key.name == 'up' && !isChoosingSpell && cursorField == 'playerField' && 
+            (markedField == chosenCharacter || isCastingSpell || isKnockingCard ||
+            isChangingMobStats || isSwappingMinionStats || isShatteringField))
         cursorField = 'enemyField';
     
     else if(key.name == 'down' && 
@@ -228,43 +253,70 @@ exports.playGameLogic = function(key, vector){
         cursorIndex = 0;
     }
     
+    else if(key.name == 'down' && cursorField == 'hand')
+        cursorField = 'character';
+    
     else if(key.name == 'down' &&
            cursorField == 'enemyCharacter')
         cursorField = 'enemyField';
     
-    writeText(0, 1, 'Cursor on: ' + cursorField + ' marked: ' + (cursorIndex + 1));  
+   coreActions.writeText(0, 1, 'Cursor on: ' + cursorField + 
+                         ' marked: ' + (cursorIndex + 1) + turnOn);  
 }
 
 function returnPressed(key, vector){
     if(key.name != 'return' || !isBoardDrawn || hasPlayerTurnEnded)
         return; // Harley Quin wuz 'ere
     
-    if(cursorField == 'hand'){
+    if((isKnockingCard || isSwappingMinionStats || isChangingMobStats || isShatteringField) &&
+       (currentModeState == 'Play Game' || currentModeState == 'Arena')){
+        var cardCan;
+        if(isKnockingCard)
+            cardCan = 'knock';
+        if(isSwappingMinionStats)
+            cardCan = 'swap';
+        if(isChangingMobStats)
+            cardCan = 'changeStats';
+        if(isShatteringField)
+            cardCan = 'shatterField';
+        
+        socket.emit('cardCan', {gameOrder:gameOrder, onField:cursorField,
+            onIndex: cursorIndex, cardCan:cardCan, changingFieldIndex: changingFieldIndex});
+    }
+    boons.gameActions(cursorField, cursorIndex);
+    
+    // if the user wants to attack with the character he can if he has duration with a weapon           or an attack for only the current turn
+    if(cursorField == 'character' && 
+       (chosenCharacter.duration || chosenCharacter.tempAttack)){
+        markedField = chosenCharacter;
+    }
+    
+    else if(cursorField == 'hand'){
         if(!spawningCard){
             spawningCard = vector[cursorIndex];
-            markedCardCursor = JSON.parse(JSON.stringify(cursorIndex));
-            ctx.point(width - 29, 2, 'WORKING');
+            markedCardCursor = cursorIndex;
         }
     }
     
     else if(cursorField == 'playerField'){
-        markedField = playerFieldVectors[cursorIndex];
+        markedField = playerFields[cursorIndex];
         
         if(spawningCard){
             
-            if(markedField.card)
+            if(markedField.card && !hasPlayerTurnEnded)
                 spawningCard = null;
             
             else{
                 // summon the card
-                if(!playerFieldVectors[cursorIndex].card && 
+                if(!playerFields[cursorIndex].card && 
                     playerMana >= spawningCard.mana &&
-                    !playerFieldVectors[cursorIndex].isDisabled){
+                    !playerFields[cursorIndex].isDisabled){
                     // 1) delete the card from the hand array
                     // 2) update the hand
                     // 3) initilize the card and summon the card
                     // 4) update the mana tauntsCount...                    
-
+                    // 5) add to already attacked cards
+                    
                     // 1)
                     vector.splice(markedCardCursor, 1);
                     
@@ -272,7 +324,7 @@ function returnPressed(key, vector){
                     playGame.updateHand();
                     
                     // 3)           
-                    var playerField = playerFieldVectors[cursorIndex];
+                    var playerField = playerFields[cursorIndex];
                     playerField.card =
                         JSON.parse(JSON.stringify(spawningCard));
                     
@@ -281,13 +333,18 @@ function returnPressed(key, vector){
                     
                     // 4)
                     playGame.updateOwnMana(-spawningCard.mana);
-                    playerCardsOnField +=1;
+                    playerSpawnedCards +=1; 
                     
-                    if(spawningCard.isTaunt)
-                        playerTauntsOnField+= 1;
+                    if(playerField.card.isTaunt)
+                        playerTaunts+= 1;
                     
-                    isCardUniq(playerField.card, cursorIndex);
-                    //  attackedFromFields.push(markedField);
+                    coreActions.isCardUniq(playerField.card, cursorIndex, 'player');
+                    attackedFromFields.push(markedField);
+                  
+                    if(currentModeState == 'Play Game') // send spawnCard
+                        socket.emit('spawnCard',
+                                    {gameOrder:gameOrder,playerIndex:playerIndex,
+                                    fieldIndex:cursorIndex,cardName:spawningCard.name});
                 }
                 
                 // demark the chosen one
@@ -299,9 +356,10 @@ function returnPressed(key, vector){
         else{
             // choose an enemy to strike at // 42life
             if(markedField.card && 
-                !hasFieldAttacked(markedField) &&
+                !coreActions.hasAttacked(markedField) &&
                 !setCardSpecialities.isCardImmobiled(markedField.card)){
                 cursorField = 'enemyField';
+                attackingFieldIndex = cursorIndex;
                 cursorIndex = 0;
             }
         }
@@ -309,129 +367,49 @@ function returnPressed(key, vector){
     
     else if(cursorField == 'enemyField'){
         // the only way to get through here is by !markedField
+        var targettedEnemy = enemyFields[cursorIndex];
         
-        var targettedEnemy = enemyFieldVectors[cursorIndex];
+        if(markedField == chosenCharacter &&
+          targettedEnemy.card && !chosenCharacter.hasAttacked)
+            coreActions.chiefAttacksCard(chosenCharacter, targettedEnemy,true);
         
-        if(!targettedEnemy.card)
+        if(!targettedEnemy.card || !markedField.card)
             return;
         
         // if the field has not attacked yet, attack!!!
         // and mark the field as attacked
         if(markedField.card &&
-            !hasFieldAttacked(markedField) &&
+            !coreActions.hasAttacked(markedField) &&
             !setCardSpecialities.isCardImmobiled(markedField.card)){
             
-            var playerCard = markedField.card,
-                enemyCard = markedField.card;
+            coreActions.cardsBattle(markedField, targettedEnemy, true, cursorIndex);
             
-            if(playerCard.defence - enemyCard.attack <= 0 && 
-                playerCard.hasDeathrattle)
-                setCardSpecialities.setCardSpecials(playerCard, 'player');
-            else if(playerCard.defence - enemyCard.attack <= 0 &&
-                    playerCard.name == 'Ogden Stonehealer')
-                isOgdenDead = true;
-            
-            if(enemyCard.defence - playerCard.attack <= 0 &&
-                enemyCard.hasDeathrattle)
-                setCardSpecialities.setCardSpecials(enemyCard, 'enemy');
-            else if(enemyCard.defence - playerCard.attack <= 0 &&
-                    enemyCard.name == 'Ogden Stonehealer')
-                isOgdenDead = true;
-            
-            setCardSpecialities
-                .activateCardBoons(markedField,targettedEnemy.card.defence,
-                                    'enemyField', cursorIndex, enemyCard.canBlock);
-            
-            playGame.attackBetweenMinions(markedField, targettedEnemy);
+            if(currentModeState == 'Play Game')
+                socket.emit('battle',{gameOrder:gameOrder,
+                            defenderField:cursorIndex,defenderFieldName:'enemyField',
+                                      attackerField:attackingFieldIndex});
         }
     }
     
     else if(cursorField == 'enemyCharacter' &&
+            markedField == chosenCharacter && !chosenCharacter.hasAttacked){
+            coreActions.chiefsBattle(chosenCharacter);
+    }
+    
+    else if(cursorField == 'enemyCharacter' &&
             markedField.card &&
-            !hasFieldAttacked(markedField) && 
+            !coreActions.hasAttacked(markedField) && 
             !setCardSpecialities.isCardImmobiled(markedField.card)){
         // check for enemy weapon, spell, shield, stealth, kungala whatever thing
         
         var playerCard = markedField.card;
         
-        setCardSpecialities
-            .activateCardBoons(markedField, enemyPlayerHealth, 
-                                'enemyCharacter', 0, playerCard.canBlock);
+        coreActions.attackEnemyChief(markedField, enemyCharacter, 
+                                 enemyPlayerHealth, 'enemyCharacter');
         
-        playGame.attackEnemyPlayer(markedField);
-        
-        if((!markedField.card || markedField.card.defence <= 0) &&
-            playerCard.hasDeathrattle)
-            setCardSpecialities.setCardSpecials(playerCard, enemy);
-        
-     //   ctx.point(width - 29, 2, 'Enemy character health: ' + enemyPlayerHealth);
-    }
-}
-
-
-function hasFieldAttacked(field){
-    var i,
-        length = attackedFromFields.length;
-    
-    for(i = 0; i < length; i+=1){
-        var currentField = attackedFromFields[i];
-        
-        if(currentField.x == field.x &&
-           currentField.y == field.y)
-            return true;
-    }
-    
-    return false;
-}
-
-function isCardUniq(card, index){
-    if(!card)
-        Error('While checking isCardUniq the argument (card) was undefined');
-    
-    var i,
-        length = uniqCards.length;
-    
-    for(i = 0; i < length; i+=1){
-        if(card.name == uniqCards[i]){
-            summonnedUniqCards.push({card:card, from: 'player', onIndex:index});
-            return;
+        if(currentModeState == 'Play Game'){
+            socket.emit('battle',{gameOrder:gameOrder, defenderField:NaN,                                           defenderFieldName:'enemyCharacter',
+                                  attackerField:attackingFieldIndex});
         }
     }
-}
-
-function activatePlayerUniqCards(){
-    var i = 0;
-    
-    while(i < summonnedUniqCards.length){
-        var currentCard = summonnedUniqCards[i],
-            cardIndex = currentCard.onIndex;
-        
-        if(!currentCard.card ||
-          (currentCard.from == 'player' &&
-           playerFieldVectors[cardIndex].card &&
-          playerFieldVectors[cardIndex].card != currentCard.card)){
-            summonnedUniqCards.splice(i, 1);
-            continue;
-        }
-    
-        if(currentCard.from == 'player')
-            setCardSpecialities.setCardSpecials(currentCard.card, 'player');
-            
-        i+=1;   
-    }
-}
-
-var lastWrittenText = '';
-
-function writeText(x,y,text){
-    
-    if(lastWrittenText != ''){
-        var i,
-            length = lastWrittenText.length;
-        for(i = 0; i <= length; i++){
-            ctx.point(x + i,y, ' ');
-        }
-    }
-    ctx.point(x,y, text);
-    lastWrittenText = text;
 }

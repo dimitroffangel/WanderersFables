@@ -30,7 +30,6 @@ function chooseCharacter(key){
     for(i = 0; i < length; i+=1) {
         ctx.point(0, 1 + (i + cycleSpinned) * 2, (i +1) + ')');
         ctx.point(0, 2 + (i + cycleSpinned) * 2, createdCharacters[i].name);
-        ctx.point(0, 3 + (i + cycleSpinned) * 2, createdCharacters[i].class);
         cycleSpinned+=1;
     }
     
@@ -60,7 +59,7 @@ function chooseDeck(key){
         ctx.point(0, 3, 'Create a deck at the forge, first...');
         return;
     }
-        
+    
     ctx.point(width-40,2,'Currently chosen: '+ playerDecks[userIndexOnDeck].name);
 
     for(i = 0; i < length; i+=1){
@@ -79,7 +78,7 @@ function chooseDeck(key){
     
     // Character chosen
     else if(key.name == 'return' && isCharacterSelectDrawn){
-        userChosenDeck = playerDecks[userIndexOnDeck];
+        userChosenDeck = JSON.parse(JSON.stringify(playerDecks[userIndexOnDeck].deck));
         isCharacterSelectDrawn = false; 
         return;
     }

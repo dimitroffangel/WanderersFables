@@ -9,7 +9,7 @@
     socket = io.connect('http://localhost:1234', {reconnect: true});
     readline = require('readline'),
     // variables...
-     countera99 =  0,
+    countera99 =  0,
     rl = undefined,
     isLogged = false,
     isUserWriting = false,
@@ -24,17 +24,19 @@
     pleaseWork = undefined,
     isDataLoaded = false,
     isQueued = false,
+    isBattleReportRecieved = false,
     loggedUsername = '',
     profileUsername = '',
     userProfile= [],
     userID = undefined,
-    hasFoundGame = false,
     currentLoginState = 'LoginMenu',
     logInOptions = ['Log In', 'Register'],
     currentLoginIndex = 0,
     lastLetter = 'return',
+    email = '',
     username = '',
     password = '',
+    isEmailSet = false,
     isUsernameSet = false,
     isPasswordSet = false,
     differentOptions=['Play Game','Alter of Heroes',
@@ -51,23 +53,31 @@
     indexOnSpell = 0,
     hasPlayerTurnEnded = false,
     hasEnemyTurnEnded = false,
-    hasTurnEnded = false, // else turn the function is rollin all day....
     markedField = undefined, // same as chosen card but for the field
     removeFieldAt = NaN,
     initialHealth = 42,
-    enemyPlayerHealth = 42,
-    playerHealth = initialHealth + 1000,
-    mana = 1,
+    enemyPlayerHealth = initialHealth,
+    playerHealth = initialHealth,
+    playerArmor = 0,
+    enemyArmor = 0,
+    playerAttacked = false,
+    enemyAttacked = false,
+    earthShieldOn = '',
+    flameAxeOn = '',
+    frostBowOn = '',
+    mana = 10,
     turnCount = 1,
-    playerMana = 10,
+    playerMana = mana,
     enemyMana = mana, // by default
     // heroes variables
     areCharactersDrawn = false, // you cannot see his/her skills
     createdCharacters = [],
     indexAtCharacter = 0,//when the player is starting the game he is choosing a character
-    enemyCharacter = {name:'Stamat', exp:undefined, class: undefined, level: undefined, spells:[]},
-    hasChosenCharacter = false,
+    enemyCharacter = {name:'Stamat', exp:undefined, class: undefined, 
+                      level: undefined, spells:[], canCast: true, canBlock: false},
     chosenCharacter = undefined,
+    playerTrapsCasted = [],
+    enemyTrapsCasted = [],
     firstPlayer = undefined,
     lastKeyEntered = ' ',
     userInput = ' ',
@@ -81,6 +91,8 @@
     userGold = 0,
     wonRowGames = 0,
     isGameFound = false,
+    gameOrder = undefined,
+    playerIndex = undefined,
     isGameFinished = false,
     //AI variables
      // choose difficulty
@@ -112,7 +124,6 @@
     userChosenDeck = undefined,
     onPage = 0,
     rebuildingDeck = undefined,
-    chosenDeck = [],
     //friendsVariables
     friendsOptions = ['Chat with a friend', 'Show friends', 'Send friend request', 
                       'Accept friend requests', 'Choose state'],
@@ -128,7 +139,33 @@
     inputFriendID = undefined,
     isInputWritten = false, 
     inputMessage = '',
+    hasChanged = false,
     battleDone = [];
+
+exports.attackEnemyChar = function(damage){
+    enemyArmor-=damage;
+    if(enemyArmor < 0){
+        enemyPlayerHealth+= enemyArmor;
+        enemyArmor = 0;
+    }
+}
+
+exports.attackUserChar = function(damage){
+    playerArmor-=damage;    
+    if(playerArmor < 0){
+        playerHealth+= playerArmor;
+        playerArmor = 0;
+    }
+}
+
+exports.encodeDeck = function(deck){
+    var cardsNames = [];
+    
+    for(var c = 0; c < deck.length; c+=1)
+       cardsNames.push(deck[c].name);
+    
+    return cardsNames;
+}
 
 exports.searchArray = function(array, element){
     var i,
@@ -140,49 +177,32 @@ exports.searchArray = function(array, element){
     }
 }
 
-exports.searchPattern = function(text, pattern){
-    
-    const R = 256;
-    var right = [];
-    
-    for(var c = 0; c < R; c+=1)
-        right.push(-1);
-    
-    for(var i = 0; i < pattern.length; i+=1)
-        right[pattern[i]] = i;
-    
-    var foundAt = search(text, pattern, right);
-    
-    return foundAt;
-}
-
-function search(text, pattern, right){
-    var textLength = text.length,
-        patternLength = pattern.length,
-        skip;
-    
-    for(var i = 0; i< textLength - patternLength; i+=1){
-        skip = 0;
+exports.enterEmail =  function(){
+    isUserWriting = true;
+         
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false
+    });
+         
+    rl.question('Enter your email?', function(answer){
+        email = JSON.parse(JSON.stringify(answer));
+        isUserWriting = false;
+        isEmailSet = true;
+        rl = undefined;
         
-        for(var j = 0; j < patternLength; j+=1){
-            if(pattern[j] != text[i+j]){
-                skip = j - right[text[i+j]];
-                
-                if(skip < 1)
-                    skip = 1;
-                
-                break;
-            }
+        if(!validateEmail(email)){
+            ctx.point(20, 4, 'Entered email is wrong');
+            isEmailSet = false;
         }
-        
-        if(skip == 0)
-            return i;
-    }
-    
-    return -1;
+    });
 }
 
-var lastKey = 'return';
+function validateEmail(email){
+      var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
 
 exports.enterUsername = function(){
     isUserWriting = true;
@@ -294,29 +314,9 @@ exports.getDeckRequest = function(){
         res.on('data', function(chunk){
             body.push(chunk);
             body = Buffer.concat(body);
-           // playerDecks = clone(JSON.parse(body)[profileUsername + userID]);
         });
     });
 }
-
-exports.getQueueState = function(){
-    
-    var options  ={
-        hostname: 'localhost',
-        port: '1234',
-        path: '/' + currentModeState,
-        agent: false
-    };
-    
-    http.get(options, function(res){
-        body = [];
-        res.on('data', function(chunk){
-            body.push(chunk);
-            body = buffer.concat(body); 
-        });
-    });
-}
-
 function clone(obj) {
     var copy;
 
@@ -348,159 +348,4 @@ function clone(obj) {
         }
         return copy;
     }
-}
-
-exports.postRequestUserData = function(){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json: {
-            "username": username,
-            "password": password
-        }
-    };
-        
-    console.log(options.method);
-    
-    request(options, function (error, response, body) {
-        /*if (!error && response.statusCode == 200)
-            console.log(body) // Print the shortened url.*/
-        if(error)
-            console.log(error);
-    });
-}
-
-exports.postRequestFriendRequest = function(requester, requesterID, reciever, recieverID){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json:{
-            "requester":requester,
-            "requesterID": requesterID,
-            "reciever": reciever,
-            "recieverID": recieverID
-        }
-    };
-    console.log(options.method);
-
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-    });
-}
-
-exports.postRequestAcceptFriend = function(concordant,requester){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json:{
-            "concordant":concordant,
-            "requester": requester
-        }
-    };
-    
-    console.log(options.method);
-
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-    });
-}
-
-exports.postRequestChangeState = function(stateValue){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json:{
-            "stateValue": stateValue,
-            "user": profileUsername,
-            "userID": userID
-        }
-    };
-    
-    console.log(options.method);
-    
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-    });
-}
-
-exports.postRequestSendMessage=  function(sender, senderID, deliverTo){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json: {
-            "sender": sender,
-            "senderID":senderID,
-            "message": inputMessage,
-            "deliverTo": deliverTo
-        }
-    };
-    
-    console.log(options.method);
-    
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-    });
-}
-
-exports.postDeck = function(deck){
-    var options = {
-        uri:'http://localhost:1234/',
-        method: 'POST',
-        json: {
-            "owner": profileUsername,
-            "ownerID": userID,
-            "deck": deck
-        }
-    };
-    
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-    });
-}
-
-exports.postCharacter = function(charName, charClass, exp, level, spells){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json: {
-            "owner": profileUsername,
-            "ownerID": userID,
-            "character": charName,
-            "class": charClass,
-            "exp": exp,
-            "level": level,
-            "spells": spells
-        }
-    };
-    
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-    });
-}
-
-// signed for Play Game or Arena
-exports.postQueue = function(signedFor){
-    var options = {
-        uri: 'http://localhost:1234/',
-        method: 'POST',
-        json: {
-            "user": profileUsername,
-            "userID": userID,
-            "signedFor": signedFor
-        }
-    };
-    
-    request(options, function(error, response, body){
-        if(error)
-            console.error(error);
-        
-        else
-            isQueued = true;
-    });
 }

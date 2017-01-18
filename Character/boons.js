@@ -1,23 +1,84 @@
 // importing
 var variables = require('../GameFunds/variables'),
-    cardVariables = require('../GameFunds/cardVariables'),
-    cardMaking = require('../GameFunds/cardMaking');
+    cardVariables = require('../CardComponent/cardVariables'),
+    cardMaking = require('../CardComponent/cardMaking'),
+    setCardSpecialities = require('../CardComponent/setCardSpecialities');
 
 // exporting
 exports.activateBoons = function(){
     activeBleeding();
-    activeVulnerable();
-    activeImmobile();
+    activeVulnerable(); // !playerIndex means the player is againts AI 
+    if(playerIndex == 1 || !playerIndex){
+        activeImmobile();
+        activeBurningFire();
+    }
     activeWindfury();
+    
+    // if there are special weapon activate their abilities too
+    if(earthShieldOn == 'player')
+        playerArmor+=1;
+    else if(earthShieldOn == 'enemy')
+        enemyArmor+=1;
+    chosenCharacter.hasAttacked = false;
+    enemyAttacked = false;
+    
+    // activate uniq player and enemy cards
+    activatePlayerUniqCards();  
+    activateEnemyUniqCards();
+}
+
+function activatePlayerUniqCards(){
+    var i = 0;
+    
+    while(i < summonnedUniqCards.length){
+        var currentCard = summonnedUniqCards[i],
+            cardIndex = currentCard.onIndex;
+        
+        // if there is no card or the card, on the field is not the memorised one remove her from the list  
+        if(!currentCard.card ||
+          (currentCard.from == 'player' &&
+           playerFields[cardIndex].card &&
+          playerFields[cardIndex].card != currentCard.card)){
+            summonnedUniqCards.splice(i, 1);
+            continue;
+        }
+    
+        if(currentCard.from == 'player')
+            setCardSpecialities.setCardSpecials(currentCard.card, 'player');
+            
+        i+=1;   
+    }
+}
+
+function activateEnemyUniqCards(){
+    var i = 0;
+    
+    while(i < summonnedUniqCards.length){
+        var currentCard = summonnedUniqCards[i],
+            cardIndex = currentCard.onIndex;
+        
+        if(!currentCard.card ||
+          (currentCard.from == 'enemy' &&
+           enemyFields[cardIndex].card &&
+           enemyFields[cardIndex].card != currentCard.card)){ // because he is dead
+            summonnedUniqCards.splice(i, 1);
+            continue;
+        }
+        
+        if(currentCard.from == 'enemy')
+            setCardSpecialities.setCardSpecials(currentCard.card, 'enemy');
+        
+        i+=1;
+    }
 }
 
 function returnPlayerCard(field){
      
-    if(playerCardsVectors.length < 6)
-        playerCardsVectors.push(field.card);
+    if(playerHand.length < 6)
+        playerHand.push(field.card);
     
-    else if(playerBonusCards.length < 4)
-        playerBonusCards.push(field.card);
+    else if(playerBonusHand.length < 4)
+        playerBonusHand.push(field.card);
     
    // destroyCardOn(field);
     field.card = undefined;
@@ -27,9 +88,11 @@ function returnPlayerCard(field){
 }
 
 function returnEnemyCard(field){
+    if(!field.card)
+        return;
     
-    if(enemyCardsVectors.length < 10)
-         enemyCardsVectors.push(field.card);
+    if(enemyHand.length < 10)
+         enemyHand.push(field.card);
      
      field.card = undefined;
      ctx.fg(255, 0, 0);
@@ -40,11 +103,11 @@ function returnEnemyCard(field){
 exports.botKnockdownsCard = function(){
 
     var i,
-        length = playerFieldVectors.length,
+        length = playerFields.length,
         mobsOnField = [];
     
     for(i = 0; i < length; i+=1){
-        var currentField = playerFieldVectors[i];
+        var currentField = playerFields[i];
         
         if(currentField.card)
             mobsOnField.push(currentField);
@@ -58,10 +121,10 @@ exports.botKnockdownsCard = function(){
     }
     
     else{
-        length = enemyFieldVectors.length;
+        length = enemyFields.length;
         
         for(i = 0; i < length; i+=1){
-            var currentField = enemyFieldVectors[i];
+            var currentField = enemyFields[i];
             
             if(currentField.card)
                 mobsOnField.push(currentField);
@@ -76,135 +139,200 @@ exports.botKnockdownsCard = function(){
      }
 }
 
-exports.gameActions = function(){
+// when this is called the game must do what the card should do
+exports.gameActions = function(onField, onIndex){
     
+    // check not only the user cards but his opponents too if he is on playGame
     if(isKnockingCard){
-        if((cursorIndex == changingFieldIndex &&
-           cursorField == 'playerField') || 
-           (playerCardsOnField == 1 &&
-          enemyCardsOnField == 0)){
+        if((onIndex == changingFieldIndex &&
+           (onField == 'playerField' || onField == 'enemyField')) || 
+           ((playerSpawnedCards == 1 &&
+            enemySpawnedCards == 0) ||
+            (enemySpawnedCards == 1 &&
+             playerSpawnedCards == 0))){
+            //Canceled knocking
             isKnockingCard = false;
             return;
         }
         
-        if(cursorField == 'playerField' &&
-          playerFieldVectors[cursorIndex].card){
-            returnPlayerCard(playerFieldVectors[cursorIndex]);
-            isKnockingCard = false;
+        //knockdown ally card
+        if(onField == 'playerField' &&
+          playerFields[onIndex].card){
+            ctx.point(width-20, 3, 'Knocked player card');
+            returnPlayerCard(playerFields[onIndex]);
         }
         
-        else if(cursorField == 'enemyField' &&
-               enemyFieldVectors[cursorIndex].card){
-            returnEnemyCard(enemyFieldVectors[cursorIndex]);
-            isKnockingCard = false;
+        // knockdown enemy card
+        else if(onField == 'enemyField' &&
+               enemyFields[onIndex].card){
+            returnEnemyCard(enemyFields[onIndex]);
+            ctx.point(width-20, 3, 'Knocked enemy card');
         }
         
-        else{
-            if(playerCardsVectors.length < 6)   
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
-            else if(playerBonusCards.length < 4)
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
+        // has knocked himself
+        else if(!hasPlayerTurnEnded){
+            if(playerHand.length < 6)   
+                playerHand.push(playerFields[changingFieldIndex].card);
+            else if(playerBonusHand.length < 4)
+                playerBonusHand.push(playerFields[changingFieldIndex].card);
             
-            playerFieldVectors[changingFieldIndex].card = undefined;
-            isKnockingCard = false;
+            playerFields[changingFieldIndex].card = undefined;
         }
+        
+        else if(hasPlayerTurnEnded){
+            if(enemyHand.length < 10)   
+                enemyHand.push(enemyFields[changingFieldIndex].card);
+            
+            enemyFields[changingFieldIndex].card = undefined;
+        }
+        isKnockingCard = false;
     }
     
+    // increase attack and defence
     if(isChangingMobStats){
-        if((cursorIndex == changingFieldIndex &&
-            cursorField == 'playerField') || 
-           (playerCardsOnField == 1 &&
-          enemyCardsOnField == 0)){
+        if((onIndex == changingFieldIndex &&
+           (onField == 'playerField' || onField == 'enemyField')) || 
+           ((playerSpawnedCards == 1 &&
+            enemySpawnedCards == 0) ||
+            (enemySpawnedCards == 1 &&
+             playerSpawnedCards == 0))){
             isChangingMobStats = false;
             return;
         }
+     
         
-        if(cursorField == 'playerField' &&
-          playerFieldVectors[cursorIndex].card){
-            playerFieldVectors[cursorIndex].card.defence += 2;
-            playerFieldVectors[cursorIndex].card.attack += 2;
-            isChangingMobStats = false;
+        // change player cards stats
+        if(onField == 'playerField' &&
+          playerFields[onIndex].card){
+            playerFields[onIndex].card.defence += 2;
+            playerFields[onIndex].card.attack += 2;
         }
         
-        else if(cursorField == 'enemyField' &&
-               enemyFieldVectors[cursorIndex].card){
-            playerFieldVectors[cursorIndex].card.defence += 2;
-            playerFieldVectors[cursorIndex].card.attack += 2;
-            isChangingMobStats = false;
+        // change nemey card stats
+        else if(onField == 'enemyField' &&
+               enemyFields[onIndex].card){
+            playerFields[onIndex].card.defence += 2;
+            playerFields[onIndex].card.attack += 2;
         }
         
-        else{
-            if(playerCardsVectors.length < 6)   
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
-            else if(playerBonusCards.length < 4)
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
+        // change spawned card stats
+        else if(!hasPlayerTurnEnded){
+            if(playerHand.length < 6)   
+                playerHand.push(playerFields[changingFieldIndex].card);
+            else if(playerBonusHand.length < 4)
+                playerBonusHand.push(playerFields[changingFieldIndex].card);
             
-            playerFieldVectors[changingFieldIndex].card = undefined;
-            isChangingMobStats = false;
+            playerFields[changingFieldIndex].card = undefined;
         }
+        
+        else if(hasPlayerTurnEnded){
+            if(enemyHand.length < 10)   
+                enemyHand.push(enemyFields[changingFieldIndex].card);
+            
+            enemyFields[changingFieldIndex].card = undefined;
+        }        
+        
+        isChangingMobStats = false;
     }
     
+    // swapping attack with defence
     if(isSwappingMinionStats){
-     if((cursorIndex == changingFieldIndex && 
-        cursorField == 'playerField') ||
-           (playerCardsOnField == 1 &&
-          enemyCardsOnField == 0)){
+        // cancel swapping
+     if((onIndex == changingFieldIndex &&
+           (onField == 'playerField' || onField == 'enemyField')) || 
+           ((playerSpawnedCards == 1 &&
+            enemySpawnedCards == 0) ||
+            (enemySpawnedCards == 1 &&
+             playerSpawnedCards == 0))){
             isSwappingMinionStats = false;
-            ctx.point(width - 20, 3, 'CI:' + cursorIndex + ' IC:'+ changingFieldIndex);
             return;
         }
-        
-        if(cursorField == 'playerField' &&
-          playerFieldVectors[cursorIndex].card){
-            var fieldToSwap =playerFieldVectors[cursorIndex].card,
+        // swap ally stats
+        if(onField == 'playerField' &&
+          playerFields[onIndex].card){
+            var fieldToSwap =playerFields[onIndex].card,
                 defence = fieldToSwap.defence;
             
             fieldToSwap.defence = fieldToSwap.attack;
             fieldToSwap.attack = defence;
-            isSwappingMinionStats = false;
         }
         
-        else if(cursorField == 'enemyField' &&
-               enemyFieldVectors[cursorIndex].card){
+        // swap enemy stats
+        else if(onField == 'enemyField' &&
+               enemyFields[onIndex].card){
             
-            var fieldToSwap = enemyFieldVectors[cursorIndex], 
+            var fieldToSwap = enemyFields[onIndex], 
                 defence = fieldToSwap.card.defence;
             
             fieldToSwap.card.defence = fieldToSwap.card.attack;
-            fieldToSwap.card.attack = defence;
-            
-            isSwappingMinionStats = false;
+            fieldToSwap.card.attack = defence;            
         }
         
-        else{
-            if(playerCardsVectors.length < 6)   
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
-            else if(playerBonusCards.length < 4)
-                playerCardsVectors.push(playerFieldVectors[changingFieldIndex].card);
+        // swap card spawned stats
+        else if(!hasPlayerTurnEnded){
+            if(playerHand.length < 6)   
+                playerHand.push(playerFields[changingFieldIndex].card);
+            else if(playerBonusHand.length < 4)
+                playerBonusHand.push(playerFields[changingFieldIndex].card);
             
-            playerFieldVectors[changingFieldIndex].card = undefined;
-            isSwappingMinionStats = false;
+            playerFields[changingFieldIndex].card = undefined;
         }
+        
+        else if(hasPlayerTurnEnded){
+            if(enemyHand.length < 10 && enemyFields[changingFieldIndex].card)  
+                enemyHand.push(enemyFields[changingFieldIndex].card);
+            
+            enemyFields[changingFieldIndex].card = undefined;
+        }        
+        isSwappingMinionStats = false;
+    }
+    ctx.point(width - 20, 5, isShatteringField + ' shatter');
+    if(isShatteringField){
+        // disable ally field
+        if(onField == 'playerField')
+            playerFields[onIndex].isDisabled = true;
+        
+        // disable enemy field
+        else if(onField == 'enemyField')
+            enemyFields[onIndex].isDisabled = true; 
+        
+        // swap card spawned stats
+        else if(!hasPlayerTurnEnded){
+            if(playerHand.length < 6)   
+                playerHand.push(playerFields[changingFieldIndex].card);
+            else if(playerBonusHand.length < 4)
+                playerBonusHand.push(playerFields[changingFieldIndex].card);
+            
+            playerFields[changingFieldIndex].card = undefined;
+        }
+        
+        // it is a data send from the enemy
+        else if(hasPlayerTurnEnded){
+            if(enemyHand.length < 10 && enemyFields[changingFieldIndex].card)  
+                enemyHand.push(enemyFields[changingFieldIndex].card);
+            
+            enemyFields[changingFieldIndex].card = undefined;
+        }        
+        isShatteringField = false;
     }
 }
 
 // returns the index of the spawnned card
 exports.spawningCard = function(cardIndex, summonFrom, fromHand){
-    
     var deck;
     if(!fromHand)
         deck = cardMaking.allCards;
     else if(summonFrom == 'player')
-        deck = playerCardsVectors;
+        deck = playerHand;
     else
-        deck = enemyCardsVectors;
+        deck = enemyHand;
     
     var i,
-        length = playerFieldVectors.length;
+        length = playerFields.length;
     
     if(summonFrom == 'enemy'){
         for(i = 0; i < length; i+=1){
-            var currentField = enemyFieldVectors[i];
+            var currentField = enemyFields[i];
             
             if(!currentField.card && !currentField.isDisabled){
                 currentField.card =
@@ -217,7 +345,7 @@ exports.spawningCard = function(cardIndex, summonFrom, fromHand){
     
     else{
         for(i = 0; i < length; i+=1){
-            var currentField = playerFieldVectors[i];
+            var currentField = playerFields[i];
             
             if(!currentField.card && !currentField.isDisabled){
                            
@@ -238,18 +366,18 @@ function activeBleeding(){
         var currentTarget = bleedingTargets[i];
      
          if(currentTarget.name == 'userPlayer')
-             playerHealth -= currentTarget.power;
+             variables.attackUserChar(currentTarget.power);
              
          else if(currentTarget.name == 'enemyCharacter')
-             enemyPlayerHealth -= currentTarget.power;
+             variables.attackEnemyChar(currentTarget.power);
          
          else{ // => it's a card
              var targetCard;
              
              if(currentTarget.name == 'playerField')
-                 targetCard = playerFieldVectors[currentTarget.position];
+                 targetCard = playerFields[currentTarget.position];
              else if(currentTarget.name =='enemyField')
-                 targetCard = enemyFieldVectors[currentTarget.position];
+                 targetCard = enemyFields[currentTarget.position];
              else
                  Error('CurrentTarget.name is kungala thingy');
  
@@ -260,11 +388,9 @@ function activeBleeding(){
              targetCard.card.defence -= currentTarget.power;
              
              checkCardDefence(targetCard);
-            
-             currentTarget.forTurns -= 1;
         }
         
-        if(currentTarget.forTurns <= 0){
+        if(turnCount - currentTarget.forTurns >= currentTarget.startedOn){
             bleedingTargets.splice(i, 1);
             continue;
         }
@@ -280,44 +406,40 @@ function activeVulnerable(){
         var currentTarget = vulnerableTargets[i];
         
         if(currentTarget.name == 'enemyCharacter')
-            enemyPlayerHealth -= currentTarget.power;
+            variables.attackEnemyChar(currentTarget.power);
         else if(currentTarget.name == 'userPlayer')
-            playerHealth -= currentTarget.power;
+            variables.attackUserChar(currentTarget.power);
         
         else{ // => it is a card
             if(currentTarget.name == 'enemyField' && 
-              enemyFieldVectors[currentTarget.positions].card){
-                enemyFieldVectors[currentTarget.positions].card.defence -=
-                    currentTarget.power;
+              enemyFields[currentTarget.position].card){
+                enemyFields[currentTarget.position].card.defence -= currentTarget.power;
+                ctx.point(width-20, 2, 
+                          enemyFields[currentTarget.position].card.defence + 'DA');
             }
             
             else if(currentTarget.name == 'playerField' &&
-                   playerFieldVectors[currentTarget.positions].card){
-                playerFieldVectors[currentTarget.positions].card.defence -=
-                    currentTarget.power;
+                   playerFields[currentTarget.position].card){
+                playerFields[currentTarget.position].card.defence -=currentTarget.power;
             }
             
             else Error('Vulnerabilty cannot be done');
         }
-        
-        currentTarget.forTurns -= 1;
-        
-        if(currentTarget.forTurns <= 0){
-            vulnerableTargets.splice(i, 1);
-            
+        if(turnCount - currentTarget.forTurns >= currentTarget.startedOn){
             if(currentTarget.name == 'enemyCharacter')
                 enemyPlayerHealth = currentTarget.cardHealth;
             else if(currentTarget.name == 'userPlayer')
                 playerHealth = currentTarget.cardHealth;
-            else if(currentTarget.name == 'enemyField'){
-                enemyFieldVectors[currentTarget.positions].
-                card.defence = currentTarget.cardHealth;
+            else if(currentTarget.name == 'enemyField' &&
+                   enemyFields[currentTarget.position].card){
+                enemyFields[currentTarget.position].card.defence= currentTarget.cardHealth;
             }
             else if(currentTarget.name == 'playerField'){
-                playerFieldVectors[currentTarget.positions].
-                card.defence = currentTarget.cardHealth;
+               playerFields[currentTarget.position].card.defence= currentTarget.cardHealth;
             }
-            
+        }
+        else{
+            vulnerableTargets.splice(i, 1);
             continue;
         }
         
@@ -331,6 +453,7 @@ function activeImmobile(){
     while(i < immobileTargets.length){
         var currentTarget = immobileTargets[i];
         
+        // each immobile is valid for 2 turns
         if(turnCount - currentTarget.onTurn >= 2){
             immobileTargets.splice(i, 1);
             continue;
@@ -340,13 +463,27 @@ function activeImmobile(){
     }
 }
 
+function activeBurningFire(){
+    var i = 0;
+    
+    while(i < burningTargers.length){
+        var currentTarget = burningTargers[i];
+        
+        if(turnCount - currentTarget.onTurn >= 2){
+            burningTargers.splice(i, 1);
+            continue;
+        }
+        i+=1;
+    }
+}
+
 function activeWindfury(){
     var i,
-        length = playerFieldVectors.length;
+        length = playerFields.length;
     
     for(i = 0; i < length; i+=1){
-        var pl_currentField = playerFieldVectors[i],
-            en_currentField = enemyFieldVectors[i];
+        var pl_currentField = playerFields[i],
+            en_currentField = enemyFields[i];
         
         if(pl_currentField.card &&
            pl_currentField.card.canWindfury == 0)

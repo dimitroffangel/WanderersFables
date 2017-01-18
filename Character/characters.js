@@ -24,15 +24,14 @@ exports.loadCreatedCharacters = function(key){
             length = createdCharacters.length;
         
         for(i = 0; i < length; i+=1){
-            ctx.point(0, 2 + i *2, 'Class: ' +  createdCharacters[i].class);
-            ctx.point(0, 3 + i *2, 'Champion"name: ' + createdCharacters[i].name);
+            ctx.point(0, 2 + i *2, 'Champion"name: ' + createdCharacters[i].name);
         }
         
         if(!key)
             return;
         
         if(key.name == 'q')
-            ctx.point(0, 10, createdCharacters[indexAtCharacter].class);
+            ctx.point(0, 10, createdCharacters[indexAtCharacter].name);
             
         if(key.name == 'e')
             return;
@@ -47,7 +46,6 @@ exports.loadCreatedCharacters = function(key){
     if(key && key.name == 'backspace'){
         isCreatingCharacter = true;
     }
-    
 }
 
 exports.createCharacter = function(key){
@@ -58,36 +56,31 @@ exports.createCharacter = function(key){
         enterPressed +=1;
         userInput.trimLeft();
         
-        if(enterPressed == 1)
-            createdCharacters.push({class: userInput});
-        
-        else if(enterPressed == 2){
+        if(enterPressed == 1){
             // the Character has: name, class, array of spells and a level counter
-            createdCharacters[createdCharacters.length - 1].name = userInput;
+            createdCharacters.push({name: userInput});
             enterPressed = 0;
             isCreatingCharacter = false;
             ctx.point(0, 15, 'Press any key to continueue');
             createdCharacters[createdCharacters.length - 1].exp = 0;
             createdCharacters[createdCharacters.length - 1].level = 10;
             createdCharacters[createdCharacters.length - 1].spells = [];
+            createdCharacters[createdCharacters.length - 1].canCast = true;
+            createdCharacters[createdCharacters.length - 1].duration = 0;
+            createdCharacters[createdCharacters.length - 1].attack = 0;
+            createdCharacters[createdCharacters.length - 1].tempAttack = 0;
+            createdCharacters[createdCharacters.length - 1].hasWindfury = 0;
             
             // in order to bind him to its class script
             this.determineChampionClass
             (createdCharacters[createdCharacters.length - 1]);
             
             
-            
             socket.emit('CreatedCharacters',{username:profileUsername, userID:userID,
                          name:createdCharacters[createdCharacters.length - 1].name,
-                         class:createdCharacters[createdCharacters.length-1].class,
                          exp:0,level:10,
-                         spells: createdCharacters[createdCharacters.length-1]
+                         spells: createdCharacters[createdCharacters.length-1].spells
                         });
-            /*variables.postCharacter(createdCharacters[createdCharacters.length - 1].name, 
-                                createdCharacters[createdCharacters.length - 1].class,
-                                0, 10, 
-                                createdCharacters[createdCharacters.length -1].spells);
-            */
         }
     
         userInput = ' ';
@@ -107,7 +100,7 @@ exports.createCharacter = function(key){
         return;
     }
     
-    if(key.name == 'return' || key.name == 'backspace')
+    if(key.name == 'return' || key.name == 'backspace' || !key.name)
         return;
     
     if(key.name == 'space'){
@@ -118,12 +111,6 @@ exports.createCharacter = function(key){
     userInput += key.name;
     
     if(enterPressed == 0){
-        ctx.point(0, 3, 'Class: ' + userInput);
-        ctx.point(0, 4, 'Name: ');
-    }
-    else if(enterPressed == 1){
-        ctx.point(0, 3, 'Class: ' + 
-                  createdCharacters[createdCharacters.length - 1].class);
         ctx.point(0, 4, 'Name: ' + userInput);
     }
     
@@ -145,12 +132,7 @@ exports.getMaxCharacterLevel = function(){
 }
 
 exports.determineChampionClass = function(character){
-    var characterClass = character.class.trimLeft();
-     
-    // elementalist
-    if(characterClass == 'e' || characterClass == 'elementalist'){
-        // set up the skills
-      elementalist.initilizeElementalistSkills();
+    elementalist.initilizeElementalistSkills();
         
         // add this property to the champion
       character.skillsTrees = 
@@ -158,5 +140,4 @@ exports.determineChampionClass = function(character){
         
         // implement the first skill
       elementalist.upgradeSkills(character);
-    }
 }

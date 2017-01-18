@@ -11,12 +11,42 @@ class variations are:
 Short hand, I think that each class can have masteries, and depending on the points you have invested on the specified skill tree, you will earn spells or minions
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!1 LISTEN
-Elem... 1) Fire: A Variaty of mage and shaman
-        2) Water: Summoning healing minions and healing spells
-        3) Earth: Taunts, monsters that deal damage on a last hit by 'em minion (inflict damage)
-        4) Air: Windfury, Chance of dodging enemy attack, immune to enemy champion's spells, blocking barriers that stop the enemies from attack the player
+Elem...     1) Fire: A Variaty of mage and shaman
+            2) Water: Summoning healing minions and healing spells
+            3) Earth: Taunts, monsters that deal damage on a last hit by 'em minion (inflict damage)
+            4) Air: Windfury, Chance of dodging enemy attack, immune to enemy champion's spells, blocking barriers that stop the enemies from attack the player
         
 Hunter... 1) Trap master,
           2) Wilderness Survival- taunts, swarm of animals, poison...
-          3) SkimrishingS
+          3) Skimrishing
           4) Markmanship
+          
+make templates for the user class
+cantrip,,arcane,signet,glyph,shout,magic skills,overload attunements
+FIRE____$blinding ashes, $burning rage, 
+$burning fire: gain 3 damage with your hero if you have condition on you
+$pyromancer training: if you cast a fire spell increase this minion gains +1 attack
+AIR___give a minion windfury(one with air), zephyr boon(grant shield to one minion)
+tempest defence, bolt to the heart, lighting rod, earth's embrace, elemental shielding, strength of stone(gain damage with the character based on your armor) diamond skin
+WATER___piercing shards, (MINION)(healing ripple, aquatic benevolence),
+Shaman of the Caledon-> at the start of each turn heal a random card or your character
+earth shield: increase health while with the weapon and defence,
+flame axe:  increase the power of fire abilities
+frost bow: increase the healing effect with 2 
+hammer: windfury
+greatsword: have the ability to deal damage to everyone, can charge the hero/minion
+
+HUNTER
+create beast companion which can have its abilities with each be different, attack with a bow, trap:immobiles attacked enemy, deal damage to everyone, summon a taunt if your hero is attacked
+focus: give bonus to cards if your mana is spent
+requiem: minions killed by ally
+    
+on level based earn new spells!!!
+
+Test of faith: randomly choose - Summon Viggo-> stops enemy minions from attacking dealing 10 damage to each one, can't attack, cannot be targeted by spells
+-Summon Vassar to guard from attaks of spells at the end of each turn inclict vulnerable to the enemy hero and random bleeding to a random enemy card, can't attack
+-Kasha Blackblood-> if your enemy summons a minion kasha recieves his speciality
+when casting test of faith you lose half your mana and half your health
+
+
+shamancaledon, grawTrapper

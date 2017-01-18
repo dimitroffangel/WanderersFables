@@ -1,1 +1,4 @@
-Spawning: Centaur Emissary on 1 Turn: 1 Mana Left: 0
+ po casted Burning Step on character Position: 0
+Turn 2
+Priest of Dwayna ( 6 6 x: 1 ) VS 
+ po Remaining Stamina: 42

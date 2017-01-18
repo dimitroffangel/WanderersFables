@@ -1,9 +1,10 @@
 //importing 
 var variables = require('../GameFunds/variables'),
-    cardMaking = require('../GameFunds/cardMaking'),
-    cardVariables = require('../GameFunds/cardVariables'),
-    cardPriority = require('../GameFunds/cardPriority'),
-    setCardSpecialities = require('../GameFunds/setCardSpecialities'),
+    coreActions = require('../GameFunds/coreActions'),
+    cardMaking = require('../CardComponent/cardMaking'),
+    cardVariables = require('../CardComponent/cardVariables'),
+    cardPriority = require('./cardPriority'),
+    setCardSpecialities = require('../CardComponent/setCardSpecialities'),
     characters = require('../Character/characters'),
     //adding class variations...
     elementalist = require('../ClassSkillTrees/elementalist'),
@@ -49,12 +50,9 @@ exports.chooseBot = function(key){
 }
 
 exports.initilizeBot = function(){
-    enemyCharacter.class = botClassOptions[indexOnBotClass];
     enemyCharacter.level = characters.getMaxCharacterLevel();
-    
-    if(enemyCharacter.class == 'elementalist'){
-        characters.determineChampionClass(enemyCharacter);
-    }
+        
+    characters.determineChampionClass(enemyCharacter);
         
     setBotDeck();
 }
@@ -76,13 +74,13 @@ function botCastsSpell(){
     
     var indexSpell = Math.round(Math.random() * 3),
         markedCursorField = determineSpellCursor(),
-        cursorPosition = Math.round(Math.random() * playerFieldVectors.length),
+        cursorPosition = Math.round(Math.random() * playerFields.length),
         fieldIndex;
     
     
     // choose a field where to cast the spell;
     if(markedCursorField != 'enemyCharacter' && markedCursorField != 'userPlayer')
-        fieldIndex = Math.round(Math.random() * (playerFieldVectors.length - 1));
+        fieldIndex = Math.round(Math.random() * (playerFields.length - 1));
     
     // cast the spell
     elementalistCasting
@@ -113,8 +111,8 @@ exports.summonEnemyCreature = function(){
     
     else if(difficultyChosen == 'normal'){
         // on 3 turns cast a spell
-        if(turnCount % 3 == 0)
-            botCastsSpell();
+     //   if(turnCount % 3 == 0)
+       //     botCastsSpell();
         
       chooseMinion_OnEasyNormal();
       attackUserMinions_OnNormal();
@@ -134,10 +132,10 @@ exports.summonEnemyCreature = function(){
 
 function botHasTaunt(){
     var i,
-        length = enemyCardsVectors.length;
+        length = enemyHand.length;
     
     for(i = 0; i < length; i+=1){
-        var currentCard = enemyCardsVectors[i];
+        var currentCard = enemyHand[i];
         
         if(currentCard.isTaunt)
             return true;
@@ -148,8 +146,9 @@ function botHasTaunt(){
 
 // for chooseBot helping functions
 function chooseDifficulty(key){
-    writeText(0, 1, 'Choose difficulty...');
-    writeText(0, 2, 'Currently chosen: ' + difficultyOptions[indexOnDifficulty]);
+    coreActions.writeText(0, 1, 'Choose difficulty...');
+    coreActions.writeText(0, 2, 'Currently chosen: ' +
+                          difficultyOptions[indexOnDifficulty]);
 
     if(key.name == 'up' && 
        indexOnDifficulty > 0)
@@ -164,12 +163,12 @@ function chooseDifficulty(key){
         lastKeyName = 'return';
     }
     
-    writeText(0, 2, 'Currently chosen: ' + difficultyOptions[indexOnDifficulty]);
+    coreActions.writeText(0, 2, 'Currently chosen: ' + difficultyOptions[indexOnDifficulty]);
 }
 
 function chooseBotCharacter(key){
-    writeText(0, 3, 'Choose bot character...');
-    writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);
+    coreActions.writeText(0, 3, 'Choose bot character...');
+    coreActions.writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);
     
     if(key.name == 'up' && 
         indexOnBotClass > 0)
@@ -183,12 +182,12 @@ function chooseBotCharacter(key){
         hasChosenBotClass = true;
         lastKeyName = 'return';
     }
-    writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);
+    coreActions.writeText(0, 4, 'Currently chosen: ' + botClassOptions[indexOnBotClass]);
 }
 
 function chooseBotDeck(key){
-    writeText(0, 5, 'Choose bot deck...');
-    writeText(0, 6, 'Currently chosen: ' + botDeckOptions[indexOnBotDeck]);
+    coreActions.writeText(0, 5, 'Choose bot deck...');
+    coreActions.writeText(0, 6, 'Currently chosen: ' + botDeckOptions[indexOnBotDeck]);
 
     if(key.name == 'up' &&
         indexOnBotDeck > 0)
@@ -202,7 +201,7 @@ function chooseBotDeck(key){
          hasChosenOpponentDeck = true;
          lastKeyName = 'return';
     }
-    writeText(0, 6, 'Currently chosen: ' + botDeckOptions[indexOnBotDeck]);
+    coreActions.writeText(0, 6, 'Currently chosen: ' + botDeckOptions[indexOnBotDeck]);
 }
 
 // for initilizeBot helping functions
@@ -253,14 +252,14 @@ function fillBasicDeck(){
 function chooseMinion_OnEasyNormal(){
     
     var i = 0,
-        length = enemyCardsVectors.length,
+        length = enemyHand.length,
         minusBy = 0;
     // if minusBy == 6 then there is no playable card at this turn
 
     
     // Start searching from the highest cost mobs to lowest. Every frame increase the           minusBy and lower the cost search for a minion
     while(enemyMana >= 0 && minusBy <= enemyMana){
-        var currentMinion = enemyCardsVectors[i];
+        var currentMinion = enemyHand[i];
 
         if(!currentMinion) // no cards in da hand
             return;
@@ -270,7 +269,7 @@ function chooseMinion_OnEasyNormal(){
         
         i+=1;
 
-        if(i == enemyCardsVectors.length - 1){
+        if(i == enemyHand.length - 1){
             i = 0;
             minusBy+=1;
         }       
@@ -312,10 +311,10 @@ function chooseMinion_OnHard(){
 function spawningEnemyMinion_OnEasyNormal(spawningCard, cardIndex){
     
     var i,
-        length = enemyFieldVectors.length;
+        length = enemyFields.length;
     
     for(i = 0; i < length; i+=1){
-        var currentField = enemyFieldVectors[i];
+        var currentField = enemyFields[i];
         
         if(!currentField.card && !currentField.isDisabled){
             spawningCard.turnSpawn = turnCount;
@@ -324,8 +323,8 @@ function spawningEnemyMinion_OnEasyNormal(spawningCard, cardIndex){
             
             // write the report
             var writeStream = fs.createWriteStream('battle_results.txt');
-            battleDone+= 'Spawning: ' + spawningCard.name + ' on ' + currentField.x + 
-                ' Turn: ' + turnCount + ' Mana Left: ' + enemyMana + '\n';
+            battleDone+= 'Spawning: ' + spawningCard.name + ' on ' + currentField.x  + 
+                ' Mana Left: ' + enemyMana + '\n';
             writeStream.write(battleDone);
             writeStream.end();
                
@@ -333,10 +332,10 @@ function spawningEnemyMinion_OnEasyNormal(spawningCard, cardIndex){
 
             
             // has special that activates at the end of the turn
-            isCardUniq(spawningCard, i);
+            coreActions.isCardUniq(spawningCard, i, 'enemy');
             
-            enemyCardsVectors.splice(cardIndex, 1);
-            enemyCardsOnField +=1;
+            enemyHand.splice(cardIndex, 1);
+            enemySpawnedCards +=1;
             return;
         }
     }
@@ -351,12 +350,12 @@ function attackUserMinions_OnEasy(){ // picked kicked
     
     var indexEnemyMinions = 0,
         indexPlayerMinions = 0,
-        enemyFieldLength = fieldLength,
-        playerFieldLength = fieldLength;
+        enemyFieldLength = playerFields.length,
+        playerFieldLength = playerFields.length;
     
     while(indexEnemyMinions < enemyFieldLength){
         // 1)
-        var currentEnemyMinion = enemyFieldVectors[indexEnemyMinions];
+        var currentEnemyMinion = enemyFields[indexEnemyMinions];
         
         // a)
         if(!currentEnemyMinion.card){
@@ -366,19 +365,18 @@ function attackUserMinions_OnEasy(){ // picked kicked
         
         // 2)
         while(indexPlayerMinions < playerFieldLength){
-            var currentPlayerMinion = playerFieldVectors[indexPlayerMinions];
+            var currentPlayerMinion = playerFields[indexPlayerMinions];
            
             if(!currentEnemyMinion.card ||
-               hasFieldAttacked(currentEnemyMinion) ||
+               coreActions.hasAttacked(currentEnemyMinion) ||
                currentEnemyMinion.card.turnSpawn == turnCount ||
                setCardSpecialities.isCardImmobiled(currentEnemyMinion.card))
                 break;
             
-            if(!currentPlayerMinion.card ||
-            (playerTauntsOnField > 0  && 
-             !currentPlayerMinion.card.isTaunt &&
-             !currentPlayerMinion.card.canStealth) ||
-              currentEnemyMinion.card.canStealth){
+            // if there is no card or the card has stealth or taunted
+            if(!currentPlayerMinion.card || currentPlayerMinion.card.canStealth ||
+            (playerTaunts > 0  && !currentPlayerMinion.card.isTaunt &&
+             !currentPlayerMinion.card.canStealth)){
                 indexPlayerMinions+=1;
                 continue;
             }
@@ -386,17 +384,18 @@ function attackUserMinions_OnEasy(){ // picked kicked
             // increase the index
             indexPlayerMinions+=1;
             // let them fight and pin the attacker to the wall of no entry here 
-            enemyMinionAttacks(currentEnemyMinion, 
-                               currentPlayerMinion, indexPlayerMinions);
+            coreActions.cardsBattle(currentEnemyMinion, currentPlayerMinion,
+                                    false, indexPlayerMinions);
         }
         indexPlayerMinions = 0;
-        
+            
         // a)
         if(currentEnemyMinion &&
-            !hasFieldAttacked(currentEnemyMinion) &&
+            !coreActions.hasAttacked(currentEnemyMinion) &&
            currentEnemyMinion.card.turnSpawn != turnCount &&
            !setCardSpecialities.isCardImmobiled(currentEnemyMinion.card)){
-            enemyMinionAttacksPlayerHero(currentEnemyMinion);
+            coreActions.attackEnemyChief(currentEnemyMinion, chosenCharacter, 
+                                         playerHealth, 'userPlayer');
         }
         indexEnemyMinions+=1;
     }
@@ -408,13 +407,13 @@ function attackUserMinions_OnNormal(){
     //  b) else play straight to the face
     
     var indexEnemyMinion = 0,
-        enemyFieldLength = enemyFieldVectors.length;
+        enemyFieldLength = enemyFields.length;
     
     while(indexEnemyMinion < enemyFieldLength){
-        var currentEnemyCreature = enemyFieldVectors[indexEnemyMinion];
+        var currentEnemyCreature = enemyFields[indexEnemyMinion];
         
         if(!currentEnemyCreature.card ||
-           hasFieldAttacked(currentEnemyCreature) ||
+           coreActions.hasAttacked(currentEnemyCreature) ||
            currentEnemyCreature.card.turnSpawn == turnCount ||
            setCardSpecialities.isCardImmobiled(currentEnemyCreature.card)){
             indexEnemyMinion+=1;
@@ -430,8 +429,9 @@ function attackUserMinions_OnNormal(){
         }
              
         // b)
-        else if(playerTauntsOnField == 0)
-            enemyMinionAttacksPlayerHero(currentEnemyCreature);
+        else if(playerTaunts == 0)
+            coreActions.attackEnemyChief(currentEnemyCreature, chosenCharacter, 
+                                         playerHealth, 'userPlayer');
         
         else
             enemyMinionAttacks_Normal(currentEnemyCreature);
@@ -442,14 +442,14 @@ function attackUserMinions_OnNormal(){
 
 function attackUserMinions_OnHard_Control(){
     var i,
-        length = enemyFieldVectors.length;
+        length = enemyFields.length;
             
     for(i = 0; i < length; i+=1){
-        var currentField = enemyFieldVectors[i];
+        var currentField = enemyFields[i];
         
         if(!currentField.card ||
            currentField.isDisabled || 
-           hasFieldAttacked(currentField) ||
+           coreActions.hasAttacked(currentField) ||
            currentField.card.turnSpawn == turnCount ||
            setCardSpecialities.isCardImmobiled(currentField.card))
             continue;
@@ -458,19 +458,19 @@ function attackUserMinions_OnHard_Control(){
             cardPriority.cardsAttackableWith(currentField.card);
         else if(botDeckOptions[indexOnBotDeck] == 'aggro')
             cardPriority.aggroCardLogic(currentField.card);
-        
-       // ctx.point(width - 20, 3, attackPriority.length + ' _42');
+       
         for(var j = 0; j < attackPriority.length; j+=1){
-            if(hasFieldAttacked(currentField))
+            if(coreActions.hasAttacked(currentField))
                 break;
             
-                enemyMinionAttacks(currentField, attackPriority[j].field,             
-                                   attackPriority[j].cardIndex);
+                coreActions.cardsBattle(currentField, attackPriority[j].field,
+                                        false, attackPriority[j].cardIndex);
                 ctx.point(width - 20, 3, 'Attacking PL Mob');
         }
         
         if(attackPriority.length == 0){ 
-                enemyMinionAttacksPlayerHero(currentField);
+                coreActions.attackEnemyChief(currentField, chosenCharacter, 
+                                             playerHealth, 'userPlayer');
                 ctx.point(width - 20, 3, 'Attacking PL');
         }
         
@@ -481,16 +481,17 @@ function attackUserMinions_OnHard_Control(){
 function enemyMinionAttacks_Normal(currentEnemyCreature){
    var potentialVicitms = [],
          i,
-         length = playerFieldVectors.length;
+         length = playerFields.length;
      
      for(i = 0; i < length; i+=1){
-         var currentPlayerMob = playerFieldVectors[i];
+         var currentPlayerMob = playerFields[i];
          
          // check for taunts if there are search for the one and attack it
          if(currentPlayerMob.card){
-             if(playerTauntsOnField > 0){
+             if(playerTaunts > 0){
                 if(currentPlayerMob.card.isTaunt){
-                    enemyMinionAttacks(currentEnemyCreature, currentPlayerMob, i);
+                    coreActions.cardsBattle(currentEnemyCreature, currentPlayerMob,
+                                            false, i);
                     return;
                 }
                  else
@@ -502,210 +503,20 @@ function enemyMinionAttacks_Normal(currentEnemyCreature){
      }
         // there are no user mobs
     if(potentialVicitms.length == 0){
-        enemyMinionAttacksPlayerHero(currentEnemyCreature);
+        coreActions.attackEnemyChar(currentEnemyCreature, chosenCharacter, 
+                                    playerHealth, 'userPlayer');
         return;
     }
     
     var randomVictimIndex = 
         Math.round(Math.random() * (potentialVicitms.length -1));
         
-    enemyMinionAttacks(currentEnemyCreature,                                                                  playerFieldVectors[randomVictimIndex], randomVictimIndex);     
+    coreActions.cardsBattle(currentEnemyCreature, playerFields[randomVictimIndex],
+                            false, randomVictimIndex);     
 }
 
 // local helping functions
-var lastWrittenText = '';
-function writeText(x,y,text){
-    
-    if(lastWrittenText != ''){
-        var i,
-            length = lastWrittenText.length;
-        for(i = 0; i <= length; i++){
-            ctx.point(x + i,y, ' ');
-        }
-    }
-    ctx.point(x,y, text);
-    lastWrittenText = text;
 
-}
-    
-function enemyMinionAttacks(enemyCreature, playerCreature, playerCreatureIndex){
-    if(!enemyCreature.card ||
-       !playerCreature.card ||
-       setCardSpecialities.isCardImmobiled(enemyCreature.card) ||
-       playerCreature.card.canStealth ||
-       enemyCreature.isDisabled){   
-        return;
-    }
-    
-    // write the report
-    writeBattle(enemyCreature, playerCreature);        
-
-    setCardSpecialities.activateCardBoons(enemyCreature, playerCreature.card.defence,
-                        'playerField', playerCreatureIndex,playerCreature.card.canBlock);
-    
-    // attack each other
-    if(enemyCreature.card.canBlock)
-        enemyCreature.card.canBlock = 0;
-    else{
-        enemyCreature.card.defence -= playerCreature.card.attack;
-        
-        if(enemyCreature.card.canEnrage)
-            setCardSpecialities.setCardSpecials(enemyCreature.card, 'enemy');
-    }
-    
-    if(playerCreature.card.canBlock)
-        playerCreature.card.canBlock = 0;
-    else{
-        playerCreature.card.defence -= enemyCreature.card.attack;
-        
-        if(playerCreature.card.canEnrage)
-            setCardSpecialities.setCardSpecials(playerCreature.card, 'player');
-    }
-    
-    if(enemyCreature.card.hasDeathrattle && enemyCreature.card.defence <= 0)
-        setCardSpecialities.setCardSpecials(enemyCreature.card, 'enemy');
-    
-    if(playerCreature.card.hasDeathrattle && playerCreature.card.defence <= 0){
-        setCardSpecialities.setCardSpecials(playerCreature.card, 'player');
-        ctx.point(width - 20, 3, 'deathrattle');
-    }
-    
-    // if the card is dead destroy the card
-    if(enemyCreature.card.defence <= 0){
-        if(enemyCreature.card.isTaunt)
-            enemyTauntsOnField-=1;
-        ctx.point(width - 20, 3, enemyCreature.x + ':x');
-        enemyCreature.card = undefined;
-
-        ctx.fg(255, 0, 0);
-        ctx.box(enemyCreature.x, enemyCreature.y, cardWidth, cardHeight);
-        ctx.cursor.restore();
-        enemyCardsOnField -= 1;
-    }
-    
-    if(playerCreature.card.defence <= 0){
-        if(playerCreature.card.isTaunt)
-            playerTauntsOnField-= 1;
-        
-        playerCreature.card = undefined;
-        
-        ctx.fg(255, 0, 0);
-        ctx.box(playerCreature.x, playerCreature.y, cardWidth, cardHeight);
-        ctx.cursor.restore();
-        playerCardsOnField -=1;
-    }
-    
-    if(enemyCreature.card &&
-       playerCreature.card &&
-       enemyCreature.card.canImmobile)
-        immobileTargets.push({card: playerCreature.card, onTurn: turnCount});          
-}
-
-function enemyMinionAttacksPlayerHero(enemyCreature){
-    if(setCardSpecialities.isCardImmobiled(enemyCreature.card) ||
-       enemyCreature.isDisabled)
-       return;
-    
-    // write battle
-    var writeStream = 
-        fs.createWriteStream('battle_results.txt');
-    battleDone += enemyCreature.card.name + ' ( ' + enemyCreature.card.attack + ' ' + 
-                  enemyCreature.card.defence + ' x: ' + enemyCreature.x + ' ) VS ' + 
-                  createdCharacters[indexAtCharacter].name + ' Remaining Stamina: ' +                       playerHealth + ' Turn: ' + turnCount +  '\n';
-    
-    writeStream.write(battleDone);
-    writeStream.end();   
-    
-    setCardSpecialities.activateCardBoons(enemyCreature, playerHealth, 
-                                          'userPlayer', 0, chosenCharacter.canBlock);
-    
-    if(chosenCharacter.canBlock)
-        chosenCharacter.canBlock = 0;
-    else{
-        playerHealth -= enemyCreature.card.attack;
-        
-        if(chosenCharacter.damage){
-            enemyCreature.card.defence -= chosenCharacter.damage;
-            
-            if(enemyCreature.card.canEnrage)
-                setCardSpecialities.setCardSpecials(enemyCreature.card, 'enemy');
-        }
-    }
-    
-    if(enemyCreature.card.hasDeathrattle && enemyCreature.card.hasDeathrattle)
-        setCardSpecialities.setCardSpecials(enemyCreature.card, 'enemy');
-    
-    if(enemyCreature.card &&
-       enemyCreature.card.canImmobile){
-        immobileTargets.push({card:chosenCharacter, onTurn:turnCount});
-        ctx.point(width - 20, 3, 'Yur hero is immobiled');
-    }
-}
-
-function hasFieldAttacked(field){
-    var i,
-        length = attackedFromFields.length;
-    
-    for(i = 0; i < length; i+=1){
-        var currentField = attackedFromFields[i];
-        
-        if(currentField === field)
-            return true;
-    }
-    
-    return false;
-}
-
-function writeBattle(currentEnemyMinion, currentPlayerMinion){
-        // 1) write the report into a file
-    battleDone += 
-        (currentEnemyMinion.card.name + '( ' + 
-        currentEnemyMinion.card.attack + ' '      +      
-        currentEnemyMinion.card.defence + ' x: ' + 
-        currentEnemyMinion.x + ' )' + ' VS ' + 
-        currentPlayerMinion.card.name + '( ' + 
-        currentPlayerMinion.card.attack + ' ' + 
-         currentPlayerMinion.card.defence + ' x: ' + currentPlayerMinion.x +  ' ) '             + 'turn: ' + turnCount + '\n');
-          
-    var writeStream = fs.createWriteStream('battle_results.txt');
-        writeStream.write(battleDone);
-        writeStream.end();        
-}
-
-function isCardUniq(card, index){
-    var i,
-        length = uniqCards.length;
-    
-    for(i = 0; i <length; i +=1){
-        if(card.name == uniqCards[i]){
-            summonnedUniqCards.push({card:card, from:'enemy', onIndex: index});
-            return;
-        }
-    }
-}
-
-function activateEnemyUniqCards(){
-    var i = 0;
-    
-    while(i < summonnedUniqCards.length){
-        var currentCard = summonnedUniqCards[i],
-            cardIndex = currentCard.fromIndex;
-        
-        if(!currentCard.card ||
-          (currentCard.from == 'enemy' &&
-           enemyFieldVectors[cardIndex].card &&
-           enemyFieldVectors[cardIndex].card != currentCard.card)){
-            summonnedUniqCards.splice(i, 1);
-            continue;
-        }
-        
-        if(currentCard.from == 'enemy')
-            setCardSpecialities.setCardSpecials(currentCard.card, 'enemy');
-        
-        i+=1;
-    }
-}
-            
 function jsonStringify(card){
     return JSON.parse(JSON.stringify(card));
 }
