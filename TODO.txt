@@ -1,0 +1,46 @@
+1.$ after playing a card update the hand-> done
+2.$ allow minions to attack themselves and the enemy hero -> done
+4.$ end turn -> done
+5.$ after playing a card delete the last field -> done
+6.$ implement enemy inteligence -> currently: easy and normal done, working on hard-> done
+7.S math.random to decide who first -> done
+8.$ draw a line beneath the card's name and a wall between attack and defence -> done
+9.$ press ctrl + s and see card description -> done
+10.$ add mana to cards and to both battlers -> done
+11.! add class variations: until level 10 you are a basic of your class after that there are (at least I hope) big differences in your character gameplay and masteries but in the game you can only choose 4 spells
+12.$ remove the killed creatures after the batte between 'em -> done
+13$. if player clicks escape while in game ask him if he is sure if he is then he loses the game -> done
+
+14.crafting system:for the cards and unlocking new mobs
+15.$ the block: the mob is attacked if it has  block than remove the block; otherwhise, take a normal damage. all boons are ->done
+17.$ shuffle enemy cards -> done
+18.$ go through the code and delete repetitions again!!!!!->done
+19.$ go back to the kamikazeto99 -> done
+20.$ add battlecries->done
+21.$ make the game's size equal to every console standard.-> done
+23.$ decide to make array of username, password... instead of a string-> done
+24.$ make variety of player state(online, away, busy, offline)-> done
+25.$ add what the player must do right now (to knock down card...) -> done
+26. check the variety of server attacks
+27. do activateUniqEnemyCards
+28. send data when character attacks, unleashes spells
+29. increment player/enemy taunts on field when initializing card
+
+Play game:{
+    state becomes "in game"
+    post: user1:chosencharacter, level, health, cards, cards on field, mana
+    post: user2:chosencharacter, level, health, cards, cards on field, mana
+    in file user1_user2.json
+}
+
+chat{
+    onMakingFriendship: add:requester-reciever in chat array in the database
+    onChoosingChatter: write the inputMessage and send it to the chat
+    reciever: Will have somewhere on the screen where he will see how much messages he has recieved, 
+    User can choose from which users he can recieve message notifications,
+    User can block friends
+    Chat will be firstly printing all messages written before from the two of em and it will have a vision of the froge deck making
+    upload a file?
+}
+    
+function to be in the core activities    
