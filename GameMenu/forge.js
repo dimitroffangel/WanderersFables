@@ -252,11 +252,17 @@ function createDeck(key){
         }
     }
     
-    else if(key.name == 'return' && playerDecks[playerDecks.length- 1].deck.length < 30){
+    else if(key.name == 'return' && forgeChosenOption == 'Create a deck' &&
+             playerDecks[playerDecks.length- 1].deck.length < 30){
         playerDecks[playerDecks.length-1].deck.push(availableCards[forgeIndex]);
     
-        if(forgeChosenOption == 'Change a card')
-            forgeChosenOption = 'Rebuild a deck';
+    }
+
+    else if(key.name == 'return' && forgeChosenOption == 'Change a card' && rebuildingDeck.deck.length < 30){
+        rebuildingDeck.deck.push(availableCards[forgeIndex]);
+        
+            if(forgeChosenOption == 'Change a card')
+                forgeChosenOption = 'Rebuild a deck';
     }
     
     else if(key.name == 'return' && playerDecks[playerDecks.length-1].deck.length == 30){

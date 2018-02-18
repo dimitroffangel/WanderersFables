@@ -24,7 +24,76 @@ exports.activateBoons = function(){
     
     // activate uniq player and enemy cards
     activatePlayerUniqCards();  
-    activateEnemyUniqCards();
+    socket.emit('uniqActions', {gameOrder:gameOrder, playerIndex:playerIndex, uniqActions: uniqCardsActions});
+    if(currentModeState == 'Training')
+        activateEnemyUniqCards();
+}
+
+exports.activateRecievedUniqCards = function(enemyUniqCards){
+    var curAction;
+    for(var i = 0; i < enemyUniqCards.length; i++){
+        curAction = enemyUniqCards[i];
+
+        if(curAction.name == 'Veteran Fleshreaver'){
+            var cardIndex = findCard('Veteran Fleshreaver');
+            hp_SpawningCard(cardIndex, 'enemy', false);
+        }
+        else if(curAction.name == 'Captain Tervelan'){
+            var cardIndex = findCard('Bandit');
+            hp_SpawningCard(cardIndex, 'enemy', false);
+        }
+        else if(curAction.name == 'Kamikazeto99'){
+            var j,
+                length = enemyFields.length,
+                cardsOnField = [];
+        
+            for(j = 0; j < length; j+=1){
+                var currentField = playerFields[j]; 
+                if(currentField.card)
+                    cardsOnField.push(currentField);
+            }
+            
+            for(j = 0; j < length; j+=1){
+                var currentField = enemyFields[j];
+                if(currentField.card)
+                    cardsOnField.push(currentField);
+            }
+
+            var damage = 2;
+
+            var randomIndex = curAction.attackedIndex;
+            if(randomIndex < cardsOnField.length){
+                cardsOnField[randomIndex].card.defence -= damage;
+                ctx.point(width-20, 3, cardsOnField[randomIndex].card.defence + ' BOMB');
+                checkCardDefence(cardsOnField[randomIndex]);
+            }
+            else if(randomIndex == cardsOnField.length)
+                variables.attackEnemyChar(damage);
+            else if(randomIndex == cardsOnField.length + 1)
+                variables.attackUserChar(damage);
+        }
+
+        else if(curAction.name == 'Shaman of Caledon'){
+            var i,
+                length = enemyFields.length,
+                healableFields = enemyFields,
+                fieldsWithCards = [],
+                healAmount = 2;
+                
+            for(i= 0; i < length;i+=1){
+                if(healableFields[i].card)
+                    fieldsWithCards.push(i);
+            }
+
+            var fieldIndex = curAction.healedIndex;
+            // card to be healed
+            var healingCard = healableFields[fieldsWithCards[fieldIndex]].card; 
+
+            healingCard.defence+= healAmount;
+            if(healingCard.defence > healingCard.initialHealth)
+                healingCard.defence = healingCard.initialHealth;
+        }
+    }
 }
 
 function activatePlayerUniqCards(){
@@ -91,7 +160,7 @@ function returnEnemyCard(field){
     if(!field.card)
         return;
     
-    if(enemyHand.length < 10)
+    if(enemyHand && enemyHand.length < 10)
          enemyHand.push(field.card);
      
      field.card = undefined;
@@ -141,12 +210,13 @@ exports.botKnockdownsCard = function(){
 
 // when this is called the game must do what the card should do
 exports.gameActions = function(onField, onIndex){
-    
+    if(onIndex < 0 || !onField)
+        return;
+
+
     // check not only the user cards but his opponents too if he is on playGame
     if(isKnockingCard){
-        if((onIndex == changingFieldIndex &&
-           (onField == 'playerField' || onField == 'enemyField')) || 
-           ((playerSpawnedCards == 1 &&
+        if(((playerSpawnedCards == 1 &&
             enemySpawnedCards == 0) ||
             (enemySpawnedCards == 1 &&
              playerSpawnedCards == 0))){
@@ -200,7 +270,6 @@ exports.gameActions = function(onField, onIndex){
             return;
         }
      
-        
         // change player cards stats
         if(onField == 'playerField' &&
           playerFields[onIndex].card){
@@ -208,11 +277,11 @@ exports.gameActions = function(onField, onIndex){
             playerFields[onIndex].card.attack += 2;
         }
         
-        // change nemey card stats
+        // change enemy card stats
         else if(onField == 'enemyField' &&
                enemyFields[onIndex].card){
-            playerFields[onIndex].card.defence += 2;
-            playerFields[onIndex].card.attack += 2;
+            enemyFields[onIndex].card.defence += 2;
+            enemyFields[onIndex].card.attack += 2;
         }
         
         // change spawned card stats
@@ -318,7 +387,8 @@ exports.gameActions = function(onField, onIndex){
 }
 
 // returns the index of the spawnned card
-exports.spawningCard = function(cardIndex, summonFrom, fromHand){
+
+function hp_SpawningCard(cardIndex, summonFrom, fromHand){
     var deck;
     if(!fromHand)
         deck = cardMaking.allCards;
@@ -355,7 +425,10 @@ exports.spawningCard = function(cardIndex, summonFrom, fromHand){
             }
         }
     }
+}
 
+exports.spawningCard = function(cardIndex, summonFrom, fromHand){
+    hp_SpawningCard(cardIndex, summonFrom, fromHand);
 }
 
 // bleeding: each elelement has: targetName, decrease defence or damage, power, '
@@ -425,6 +498,8 @@ function activeVulnerable(){
             
             else Error('Vulnerabilty cannot be done');
         }
+        ctx.point(width-20, 2, (-currentTarget.startedOn +turnCount - currentTarget.forTurns) + ' SUm');
+        ctx.point(width-20, 3, currentTarget.name + ' ' + currentTarget.cardHealth);
         if(turnCount - currentTarget.forTurns >= currentTarget.startedOn){
             if(currentTarget.name == 'enemyCharacter')
                 enemyPlayerHealth = currentTarget.cardHealth;
@@ -432,17 +507,17 @@ function activeVulnerable(){
                 playerHealth = currentTarget.cardHealth;
             else if(currentTarget.name == 'enemyField' &&
                    enemyFields[currentTarget.position].card){
+                ctx.point(width-20, 3, currentTarget.cardHealth + ' cardHealth');
                 enemyFields[currentTarget.position].card.defence= currentTarget.cardHealth;
             }
             else if(currentTarget.name == 'playerField'){
                playerFields[currentTarget.position].card.defence= currentTarget.cardHealth;
             }
-        }
-        else{
+
             vulnerableTargets.splice(i, 1);
             continue;
         }
-        
+
         i+= 1;
     }
 }
@@ -502,7 +577,7 @@ function checkCardDefence(firedAt){
     destroyCardOn(firedAt);
 }
 
-function detroyCardOn(field){
+function destroyCardOn(field){
     // throw the body in the river
      field.card = undefined;
      ctx.fg(255, 0, 0);

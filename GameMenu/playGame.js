@@ -41,7 +41,7 @@ exports.vsAIEachFrame = function(){
     ctx.point(0, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana+ '| Name: ' + 
               chosenCharacter.name + '| Health: ' + playerHealth + '| Armor: ' + 
               playerArmor + '| Traps: ' + playerTrapsCasted.length); 
-    
+
     this.onTurnOrder();  
 }
     
@@ -54,11 +54,26 @@ exports.vsPlayerEachFrame = function(){
     
     if(hasPlayerTurnEnded){
         onTurnStart();
+        enemySentData();
+    }
+
+    else{
+        socket.emit('checkUniqActions', {gameOrder:gameOrder, playerIndex:playerIndex});
         
-        if(hasPlayerTurnEnded)
-            enemySentData();
+        socket.on('recieveUniqActions', function(data){
+            ctx.point(width-20, 2, data.uniqActions.length + " " + updateUniqCounter + " C " + data.updateCounter);
+
+            if(data.uniqActions.length <= 0 || updateUniqCounter >= data.updateCounter || data.updateCounter == null)
+                return;
+
+            ctx.point(width-20, 3, data.uniqActions.length + ' LENGTH');
+            
+            boons.activateRecievedUniqCards(data.uniqActions);
+            updateUniqCounter = data.updateCounter;
+        });
     }
     
+    //ctx.point(width-20, 3, playerTaunts + " EP " + enemyTaunts);
     // draw Player Info
     ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' +
               '| '+'Name: ' + chosenCharacter.name + '|' + 'Health: ' + playerHealth + '| '); 
@@ -66,91 +81,121 @@ exports.vsPlayerEachFrame = function(){
 
 function enemySentData(){
     
-    socket.emit('playerRequestData',{gameOrder:gameOrder,playerIndex:playerIndex});
-    
+    socket.emit('playerRequestData', {gameOrder:gameOrder,playerIndex:playerIndex});
+
     socket.on('battleReport'+profileUsername+userID, function(data, fn){                
-        // 1)-> enemy has spawned card
-        for(var i =0; i< data.enemyFields.length; i+=1){
-            if(data.enemyFields[i] && data.enemyFields[i] != '' && !enemyFields[i].card){
-                var cardIndex = findCard(data.enemyFields[i]);
-                
-                enemyFields[i].card=JSON.parse(JSON.stringify(
-                    cardMaking.allCards[cardIndex]));
-                coreActions.isCardUniq(enemyFields[i].card, i, 'enemy');
-                setCardSpecialities.setCardSpecials(enemyFields[i].card, 'enemy');
-    
-                // 1.5) -> enemy card has speciality (knock/swap/change
-                if(data.cardCan != ''){
-                    changingFieldIndex = data.changingFieldIndex;
-                    ctx.point(width - 20, 2, changingFieldIndex + '@');
-                    if(data.cardCan == 'knock')
-                        isKnockingCard = true;
-                    else if(data.cardCan == 'swap')
-                        isSwappingMinionStats = true;
-                    else if(data.cardCan == 'changeStats')
-                        isChangingMobStats = true;
-                    else if(data.cardCan == 'shatter')
-                        isShatteringField = true;
-                    var onField;
-                    // the enemy enemy is user
-                    if(data.onField == 'enemyField')
-                        onField = 'playerField';
-                    else if(data.onField == 'playerField')
-                        onField = 'enemyField';
-                    boons.gameActions(onField, data.onIndex);
+           // 1)-> enemy has spawned card
+         //  ctx.point(width-20, 2, data.cursorPosition + ' CP');
+         if(data.updateCounter <= serverUpdateCounter)
+            return;
+        serverUpdateCounter = data.updateCounter;
+           
+            if(data.fieldIndex != null && data.fieldIndex>=0 ){
+                for(var i = 0; i < data.enemyFields.length; i++){
+                    if(data.enemyFields[i] == '' || 
+                        (enemyFields[i].card && data.enemyFields[i] == enemyFields[i].card.name))
+                        continue;
+
+                    var cardIndex = findCard(data.enemyFields[i]);
+
+                    enemyFields[data.fieldIndex].card= JSON.parse(JSON.stringify(cardMaking.allCards[cardIndex]));
+                    coreActions.isCardUniq(enemyFields[data.fieldIndex].card, data.fieldIndex, 'enemy');
+                    setCardSpecialities.setCardSpecials(enemyFields[data.fieldIndex].card, 'enemy');
+
+                    enemySpawnedCards++;
                 }
-                fn(true);
             }
-        }
+
+            // 1.5) -> enemy card has speciality (knock/swap/change
+            if(data.cardCan != ''){
+                changingFieldIndex = data.changingFieldIndex;
+                if(data.cardCan == 'knock')
+                    isKnockingCard = true;
+                else if(data.cardCan == 'swap')
+                    isSwappingMinionStats = true;
+                else if(data.cardCan == 'changeStats')
+                    isChangingMobStats = true;
+                else if(data.cardCan == 'shatter')
+                    isShatteringField = true;
+                var onField;
+                // the enemy enemy is user
+                if(data.onField == 'enemyField')
+                    onField = 'playerField';
+                else if(data.onField == 'playerField')
+                    onField = 'enemyField';
+                boons.gameActions(onField, data.onIndex);
+            }
+            
+           // socket.emit('updateBattlefield', {gameOrder:gameOrder});
+
         // enemy has casted a spell
-        if(data.cursorPosition != -1 && data.markedCursor != ''){
+        if(data.cursorPosition != null && data.cursorPosition>=0 && data.markedCursor != ''){
             enemyCharacter = data.character;
             //ctx.positions(width - 20, 4, data.character.spells[0].name + ' NM');
             elementalistCasting.castChosenSpell(data.spellIndex,enemyCharacter,
-                                             data.markedCursor,data.cursorPosition);
-            fn(true);
+                    data.markedCursor,data.cursorPosition);
         }
+
         // 2)-> enemy has attacked
         // if the fields are empty there is nothing to report
-        if(data.defenderField == NaN || data.attackerField == NaN){
-            fn(true);
+       // ctx.point(width - 20, 2, data.defenderField + ' DF');
+        
+        if(data.defenderIndex == NaN || data.attackerIndex == NaN)
+            return;
+
+        // the character is attacking
+        if(data.attackerIndex == -1 && data.defenderField == 'enemyField'){
+            var defender = playerFields[data.defenderIndex];
+
+            if(!defender || !defender.card || enemyCharacter.hasAttacked)
                 return;
+
+            coreActions.chiefAttacksCard(enemyCharacter, defender, false);
         }
+
+        else if(data.attackerIndex == -1 && data.defenderField == 'enemyCharacter'){
+            if(enemyCharacter.hasAttacked)
+                return;
+
+            coreActions.chiefsBattle(enemyCharacter);
+        }
+
             // the opponent desires to attack his hero(userPlayer) 
             // so here he attacks the enemy opponent(himself) :D
-        if(data.defenderFieldName == 'userCharacter'){
-            var attacker = enemyFields[data.attackerField];
+        else if(data.defenderField == 'userCharacter'){
+            var attacker = enemyFields[data.attackerIndex];
             if(!attacker || !attacker.card || coreActions.hasAttacked(attacker))
                 return;
             enemyBattleInfo.health = playerHealth;
             coreActions.attackEnemyChief(attacker, enemyCharacter, 
-                                         enemyPlayerHealth, 'enemy');
+                                         enemyPlayerHealth, 'enemyCharacter');
             
-            ctx.point(width - 20, 2, 'Attacking enemyPlayer');
+           // ctx.point(width - 20, 2, 'Attacking enemyPlayer');
         }
         // desires to attack the other playerCharacter
-        else if(data.defenderFieldName == 'enemyCharacter'){
-            var attacker = enemyFields[data.attackerField];
+        else if(data.defenderField == 'enemyCharacter'){
+            var attacker = enemyFields[data.attackerIndex];
             if(!attacker || !attacker.card || 
                coreActions.hasAttacked(attacker))
                 return;
             
-            coreActions.attackEnemyChief(attacker, chosenCharacter,
-                                         playerHealth, 'userPlayer');
+            coreActions.attackEnemyChief(attacker, chosenCharacter,playerHealth, 'userPlayer');
         }
         //battle between two minions/cards//
-        else if(data.defenderFieldName == 'enemyField'){
-            var attacker = enemyFields[data.attackerField],
-                defender = playerFields[data.defenderField];
+        else if(data.defenderField == 'enemyField'){
+            var attacker = enemyFields[data.attackerIndex],
+                defender = playerFields[data.defenderIndex];
+          //  ctx.point(width - 20, 2, 'Attacking between minions');
+                
             if(!attacker || !defender ||
                !attacker.card || !defender.card || coreActions.hasAttacked(attacker))
                 return;
             
-            coreActions.cardsBattle(attacker,defender, false, data.defenderField);
-            ctx.point(width - 20, 2, 'Attacking between minions');
+            coreActions.cardsBattle(attacker,defender, false, data.defenderIndex);
+          //  ctx.point(width - 20, 2, 'Attacking between minions');
         }
         // attack the field to the already attacked
-        
+
         fn(true);
     });
 }
@@ -161,12 +206,17 @@ function onTurnStart(){
     socket.emit('requestStartTurn', {gameOrder:gameOrder,playerIndex:playerIndex});
     
     socket.on('startTurn'+profileUsername+userID, function(data){
-              enemyTaunts= data.playerTauntsOfFiled;
-            
+        uniqCardsActions = [];
+
         hasPlayerTurnEnded = false;
         attackFromFields=data.attackedFromFields;
         enemyHand=data.playerHand;
-        
+        enemyCharacter.hasAttacked = false;
+        if(enemyCharacter.weapon == 'Thor"s hammer')
+            enemyCharacter.hasWindfury = 1;
+        if(chosenCharacter.weapon == 'Thor"s hammer')
+            chosenCharacter.hasWindfury = 1;
+
         if(playerIndex == 0)
             attackedFromFields = [];
     });
@@ -187,8 +237,7 @@ exports.onTurnEnd = function(){
     
     socket.emit('endTurn', {username:profileUsername,userID:userID,
                             gameOrder:gameOrder,playerIndex:playerIndex,
-                            playerHand: playerHand.concat(playerBonusHand),
-                           });
+                            playerHand: playerHand.concat(playerBonusHand)});
     drawCards(1, 1);
 }
 
@@ -250,7 +299,7 @@ exports.isGameOver = function(){
 
         ctx.point(0, 1, 'You have won, Game won in a row: ' + wonRowGames);
         ctx.point(0, 2, 'Current exp: ' + currentCharacter.exp);
-       // ctx.point(0, 3, 'Needed for next level: ' +                                                       (experience.levels[currentCharacter.level - 1].maxExp -                                  currentCharacter.exp));
+       // ctx.point(0, 3, 'Needed for next level: ' + (experience.levels[currentCharacter.level - 1].maxExp -                                  currentCharacter.exp));
         ctx.point(0, 5, 'Money owned: ' + userGold);
         ctx.point(0, 4, 'Press enter to go back to the Game Menu');
                 
@@ -489,7 +538,6 @@ function drawCards(amountOfPlayerCards, amountOfEnemyCards){
         }
         
         var randomCard = botDeck[0];
-        ctx.point(botDeck[0].name);
         //delete the card from the deck
         botDeck.splice(0, 1);
         
@@ -500,10 +548,24 @@ function drawCards(amountOfPlayerCards, amountOfEnemyCards){
 
 function drawInitialCards(){
     playerHand.push(cardMaking.allCards[findCard('Priest of Dwayna')]);
+    playerHand.push(cardMaking.allCards[findCard('Kamikazeto99')]);
+    playerHand.push(cardMaking.allCards[findCard('Shaman of Caledon')]);
+    playerHand.push(cardMaking.allCards[findCard('Arcanist Dremus')]);
+    
+   /* playerHand.push(cardMaking.allCards[findCard('Captain Tervelan')]);
+    playerHand.push(cardMaking.allCards[findCard('Champion Harathi Warrior')]);
+    playerHand.push(cardMaking.allCards[findCard('Zommoros')]);
+    playerHand.push(cardMaking.allCards[findCard('Carrion Sculpture')]);
+
     playerHand.push(cardMaking.allCards[findCard('Zommoros')]);
     playerHand.push(cardMaking.allCards[findCard('Ert and Burt')]);
-    playerHand.push(cardMaking.allCards[2]);
-    drawCards(6, 6);
+    playerHand.push(cardMaking.allCards[findCard('Mama')]); // knockback
+    playerHand.push(cardMaking.allCards[findCard('Mama')]); // knockback
+    playerHand.push(cardMaking.allCards[findCard('Karamoleoff')]); // buffing effect 
+    playerHand.push(cardMaking.allCards[findCard('Fen')]); // swapping effect
+    playerHand.push(cardMaking.allCards[findCard('Pickpocket Master')]); // shattering effect
+   */ 
+  drawCards(6, 6);
 } // stupid enough but draw is taking a card
 
 function drawCardInHand(){ 
@@ -592,6 +654,7 @@ function endTurn(){
         // 4) allow the attackers to strike once more
         // 5) activate boons
         // 6) botPriority card is reset to undefined
+        // 7) reset characters windfury
 
         //1)
         battleDone += 'Turn ' + turnCount +  '\n';
@@ -616,6 +679,12 @@ function endTurn(){
         boons.activateBoons();    
         // 6)
         handPriority = [];
+
+        // 7
+        if(enemyCharacter.weapon == 'Thor"s hammer')
+            enemyCharacter.hasWindfury = 1;
+        if(chosenCharacter.weapon == 'Thor"s hammer')
+            chosenCharacter.hasWindfury = 1;
     }
 }
 

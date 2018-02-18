@@ -1,7 +1,6 @@
 // importing
 var cardMaking = require('./cardMaking');
 
-
 // all functions in line with the field and the card
 
 exports. 
@@ -45,7 +44,7 @@ exports.
     showingPlayerHand = 'main', /* the player hand is divided in 2 playerHand(main) and playerBonusHand(bonus) if the cursorIndex is on last of main go to playerBonusHand and if the index is on zero of bonus go to main*/
     //-----input variables--------
     cursorField = 'hand', 
-    // default on hand, otherwhise: playerField, enemyField, enemyHero
+    // default on hand, otherwise: playerField, enemyField, enemyHero
     cursorIndex = 0, // default navigation 
     attackingFieldIndex = 0, // the index from which the attack comes from
     markedCardCursor = 0,  // the index from which the card has been spawned
@@ -58,6 +57,7 @@ exports.
     burningTargers = [],
     uniqCards = [], // cards that demand special action for 'em
     summonnedUniqCards = [],
+    uniqCardsActions = [],
     changingFieldIndex = undefined, 
     // index that represent the card from which the activation has come from
     isKnockingCard = false,

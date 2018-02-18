@@ -55,10 +55,9 @@ exports.logIn = function(key) {
                    for(; i < data.createdDecks.length; i+=1){
                        playerDecks
                            .push({name:data.createdDecks[i].name,deck:[], 
-                                   isUsable:data.createdDecks[i].isUsable}); 
+                                   isUsable:data.createdDecks[i].isUsable});
                        for(; j < data.createdDecks[i]['deck'].length; j+=1){
-                           playerDecks[0].deck.push
-                               ((findCard(data.createdDecks[i]['deck'][j])));
+                           playerDecks[i].deck.push(findCard(data.createdDecks[i]['deck'][j]));
                        }
                    }
                 }

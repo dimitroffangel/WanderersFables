@@ -97,7 +97,6 @@ exports.friendsMenu = function(key){
             socket.emit('ChangeState', {username:profileUsername,
                                         userID:userID,state:userState});
             
-            console.log(userState + ' ' + ' 42');
           //  variables.postRequestChangeState(userState);
         }
           console.log(userState);
@@ -136,8 +135,12 @@ function printFriendMode(key){
     
     else if(friendChosenOption == 'Chatting'){
         if(key.name != 'return' && key.name != 'up' && key.name != 'down' &&
-           key.name != 'right' && key.name != 'left')
-            inputMessage += key.name;
+           key.name != 'right' && key.name != 'left' && key.name){
+            if(key.name == 'space')
+                inputMessage += ' ';
+            else
+                inputMessage += key.name;
+           }
         
             socket.on('AllChats', function(data){chatHistory=data.chat;});
             // variables.getRequest();

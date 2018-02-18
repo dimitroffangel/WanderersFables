@@ -168,17 +168,17 @@ exports.playGameLogic = function(key, vector){
             else if(playerBonusHand.length < 4)
                 playerHand.push(playerFields[changingFieldIndex].card);
             
-            playerFields[changingFieldIndex].card = undefined;
+           // playerFields[changingFieldIndex].card = undefined;
             ctx.fg(255, 0, 0);
             ctx.box(playerFields[changingFieldIndex].x, 
                     playerFields[changingFieldIndex].y, 
                     cardWidth, cardHeight);
             ctx.cursor.restore();
             
-            isKnockingCard = false;
+    /*        isKnockingCard = false;
             isChangingMobStats = false;
             isSwappingMinionStats = false;
-            isShatteringField = false;
+            isShatteringField = false;*/
         }
     }
     
@@ -335,15 +335,12 @@ function returnPressed(key, vector){
                     playGame.updateOwnMana(-spawningCard.mana);
                     playerSpawnedCards +=1; 
                     
-                    if(playerField.card.isTaunt)
-                        playerTaunts+= 1;
-                    
                     coreActions.isCardUniq(playerField.card, cursorIndex, 'player');
                     attackedFromFields.push(markedField);
                   
                     if(currentModeState == 'Play Game') // send spawnCard
                         socket.emit('spawnCard',
-                                    {gameOrder:gameOrder,playerIndex:playerIndex,
+                                    {gameOrder:gameOrder,playerIndex:playerIndex, handIndex:markedCardCursor,
                                     fieldIndex:cursorIndex,cardName:spawningCard.name});
                 }
                 
@@ -370,9 +367,12 @@ function returnPressed(key, vector){
         var targettedEnemy = enemyFields[cursorIndex];
         
         if(markedField == chosenCharacter &&
-          targettedEnemy.card && !chosenCharacter.hasAttacked)
+          targettedEnemy.card && !chosenCharacter.hasAttacked){
             coreActions.chiefAttacksCard(chosenCharacter, targettedEnemy,true);
-        
+            socket.emit('battle', {gameOrder:gameOrder, defenderIndex:cursorIndex,
+                        defenderField:'enemyField', attackerIndex:-1});
+        }
+
         if(!targettedEnemy.card || !markedField.card)
             return;
         
@@ -385,15 +385,18 @@ function returnPressed(key, vector){
             coreActions.cardsBattle(markedField, targettedEnemy, true, cursorIndex);
             
             if(currentModeState == 'Play Game')
-                socket.emit('battle',{gameOrder:gameOrder,
-                            defenderField:cursorIndex,defenderFieldName:'enemyField',
-                                      attackerField:attackingFieldIndex});
+                socket.emit('battle',{gameOrder:gameOrder, defenderIndex:cursorIndex,
+                    defenderField:'enemyField',attackerIndex:attackingFieldIndex});
         }
     }
     
     else if(cursorField == 'enemyCharacter' &&
             markedField == chosenCharacter && !chosenCharacter.hasAttacked){
             coreActions.chiefsBattle(chosenCharacter);
+            
+            if(currentModeState == 'Play Game')
+                socket.emit('battle', {gameOrder:gameOrder, defenderIndex:-1,
+                                    defenderField:'enemyCharacter', attackerIndex:-1});
     }
     
     else if(cursorField == 'enemyCharacter' &&
@@ -408,8 +411,8 @@ function returnPressed(key, vector){
                                  enemyPlayerHealth, 'enemyCharacter');
         
         if(currentModeState == 'Play Game'){
-            socket.emit('battle',{gameOrder:gameOrder, defenderField:NaN,                                           defenderFieldName:'enemyCharacter',
-                                  attackerField:attackingFieldIndex});
+            socket.emit('battle',{gameOrder:gameOrder, defenderIndex:-1, 
+                                    defenderField:'enemyCharacter', attackerIndex:attackingFieldIndex});
         }
     }
 }

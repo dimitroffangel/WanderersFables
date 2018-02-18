@@ -12,7 +12,7 @@
 13$. if player clicks escape while in game ask him if he is sure if he is then he loses the game -> done
 
 14.crafting system:for the cards and unlocking new mobs
-15.$ the block: the mob is attacked if it has  block than remove the block; otherwhise, take a normal damage. all boons are ->done
+15.$ the block: the mob is attacked if it has  block than remove the block; otherwise, take a normal damage. all boons are ->done
 17.$ shuffle enemy cards -> done
 18.$ go through the code and delete repetitions again!!!!!->done
 19.$ go back to the kamikazeto99 -> done
@@ -43,4 +43,4 @@ chat{
     upload a file?
 }
     
-function to be in the core activities    
+function to be in the core activities

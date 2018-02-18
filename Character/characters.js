@@ -23,9 +23,8 @@ exports.loadCreatedCharacters = function(key){
         var i,
             length = createdCharacters.length;
         
-        for(i = 0; i < length; i+=1){
+        for(i = 0; i < length; i+=1)
             ctx.point(0, 2 + i *2, 'Champion"name: ' + createdCharacters[i].name);
-        }
         
         if(!key)
             return;

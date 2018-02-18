@@ -70,6 +70,8 @@ function trapsSpeciality(trapName, character, markedCursor, cursorPosition){
         if(character == chosenCharacter && markedCursor != 'playerField'){
             spawnCard(playerFields, 'Arx');
         }
+        else
+            spawnCard(enemyFields, 'Arx');
     }
     
     else if(trapName == 'Purification'){
@@ -156,6 +158,8 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
     var spellOptions = character.spells;
     var chainnedSpell = spellOptions[spellIndex];
     
+    ctx.point(width-20, 13, chainnedSpell.name + ' SP');    
+
     if(turnCount - chainnedSpell.lastTimeCast < chainnedSpell.cooldown){
        if(character == chosenCharacter)
             ctx.point(width- 20, 2, 'The cooldown of this spell has not expired');
@@ -174,6 +178,10 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
         
         return;
     }
+
+    if((markedCursor == 'playerField' && !playerFields[cursorPosition].card.recieveSpell) ||
+        markedCursor == 'enemyField' && !enemyFields[cursorPosition].card.recieveSpell)
+        return;
     
     writeBattle(character, spellIndex, markedCursor, cursorPosition);
     
@@ -339,8 +347,6 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
     
     else if(chainnedSpell.name == 'Tempest Defence'){
         var cardCanBe = ['immobile', 'knockback'],
-            playerFields = [],
-            enemyFields = [],
             length = playerFields.length;
         
         for(var i = 0; i < length;i+=1){
@@ -449,6 +455,8 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
     }
     
     else if(chainnedSpell.name == 'Earth shield'){
+         character.weapon = 'Earth shield';
+
         character.duration = 5;
         character.attack = 3;
         if(character == chosenCharacter)
@@ -458,6 +466,8 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
     }
     
     else if(chainnedSpell.name == 'Flame axe'){
+         character.weapon = 'Flame axe';
+
         character.duration = 5;
         character.attack = 3;
         if(character == chosenCharacter)
@@ -467,6 +477,8 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
     }
     
     else if(chainnedSpell.name == 'Frost Bow'){
+         character.weapon = 'Frost Bow';
+
         character.duration = 5;
         character.attack = 3;
         
@@ -477,6 +489,8 @@ exports.castChosenSpell = function(spellIndex, character, markedCursor, cursorPo
     }
     
     else if(chainnedSpell.name == 'Thor"s hammer'){
+         character.weapon = 'Thor"s hammer';
+        
         character.duration = 5;
         character.attack = 3;
         character.hasWindfury = 1;
@@ -690,17 +704,15 @@ function cardField(cardName, fields){
 } // cardField
 
 function spawnCard(fields, cardName){
-    var summonFrom,
-        taunts;
-    if(fields == playerFields){
+    var summonFrom; 
+
+    if(fields == playerFields)
         summonFrom = 'player';
-        taunts = playerTaunts;
-    }
-    else{
+    else
         summonFrom = 'enemy';
-        taunts = enemyTaunts;
-    }
-    
+
+    ctx.point(width-20, 3, ' Spawning');    
+
     for(var i = 0; i < fields.length; i+=1){
         var currentField = fields[i];
         
@@ -708,7 +720,6 @@ function spawnCard(fields, cardName){
             var card =cardMaking.allCards[coreActions.findCard(cardName)];
             setCardSpecialities.setCardSpecials(card, summonFrom);
             currentField.card = cardMaking.allCards[coreActions.findCard(cardName)];
-            taunts+=1;
             return;
         }
     }

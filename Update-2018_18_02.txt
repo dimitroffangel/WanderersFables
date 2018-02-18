@@ -1,0 +1,7 @@
+Firstly, When I installed win 10 on the laptop and computer, I lost plenty of files, due to my recklesness.
+Long story short I had to rebuild the repository. The way of sending data between play mode is made
+by sending partial information from the client to the server from numerous places, wherefore the server
+sends the whole chunk with update to the client waiting to recieve the information. One of the big improvements,
+which I do not remember if I had done it before, is that the information of the uniq cards is not randomly made 
+by the other player, but recieves this information, right before starting his turn to understand the current
+battle.

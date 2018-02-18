@@ -328,8 +328,7 @@ function spawningEnemyMinion_OnEasyNormal(spawningCard, cardIndex){
             writeStream.write(battleDone);
             writeStream.end();
                
-            setCardSpecialities.setCardSpecials(currentField.card, 'enemy');    
-
+            setCardSpecialities.setCardSpecials(currentField.card, 'enemy');
             
             // has special that activates at the end of the turn
             coreActions.isCardUniq(spawningCard, i, 'enemy');
@@ -373,7 +372,7 @@ function attackUserMinions_OnEasy(){ // picked kicked
                setCardSpecialities.isCardImmobiled(currentEnemyMinion.card))
                 break;
             
-            // if there is no card or the card has stealth or taunted
+            // if there is no card or the card has stealth or taunt
             if(!currentPlayerMinion.card || currentPlayerMinion.card.canStealth ||
             (playerTaunts > 0  && !currentPlayerMinion.card.isTaunt &&
              !currentPlayerMinion.card.canStealth)){

@@ -57,10 +57,21 @@ exports.hasAttacked = function(field){
 exports.cardsBattle = function(attacker, defender,fromPlayer, defenderIndex){
     if(!attacker.card ||
        !defender.card ||
-       attacker.card.turnSpawn == turnCount ||
+       attacker.card.turnSpawn == turnCount ||  
        setCardSpecialities.isCardImmobiled(attacker.card) ||
        defender.card.canStealth ||
        attacker.isDisabled){
+        return;
+    }
+
+    // if(fromPlayer)
+    //     ctx.point(width-20, 2, enemyTaunts+' '+ defender.isTaunt);
+    // if(!fromPlayer)
+    //     ctx.point(width-20, 3, playerTaunts+''+defender.isTaunt);
+
+    if((fromPlayer && enemyTaunts>0 && !defender.card.isTaunt) || 
+    (!fromPlayer && playerTaunts>0 && !defender.card.isTaunt)){
+        //ctx.point(width-20, 2, 'should back');
         return;
     }
     
@@ -70,6 +81,7 @@ exports.cardsBattle = function(attacker, defender,fromPlayer, defenderIndex){
     var toFields,
         defenderIs,
         attackerIs;
+
     if(fromPlayer){
         toFields = 'enemyField';
         defenderIs= 'enemy';
@@ -80,6 +92,8 @@ exports.cardsBattle = function(attacker, defender,fromPlayer, defenderIndex){
         defenderIs = 'player';
         attackerIs = 'enemy';
     }
+
+    ctx.point(width-20, 2, attackerIs + ' VS ' + defenderIs);
     setCardSpecialities.activateCardBoons(attacker, defender.card.defence,
                         toFields, defenderIndex,defender.card.canBlock);
     
@@ -120,11 +134,18 @@ exports.cardsBattle = function(attacker, defender,fromPlayer, defenderIndex){
 }
 
 exports.chiefsBattle = function(attacker){
-    var userAttack = chosenCharacter.attack + chosenCharacter.tempAttack,
-            enemyAttack = enemyCharacter.attack + enemyCharacter.tempAttack;
-        variables.attackEnemyChar(userAttack);
-        variables.attackUserChar(enemyAttack);
+    var userAttack = chosenCharacter.attack + chosenCharacter.tempAttack;
+    var enemyAttack = enemyCharacter.attack + enemyCharacter.tempAttack;
     
+    if(userAttack == 0 && enemyAttack == 0)
+       return;
+
+    variables.attackEnemyChar(userAttack);
+    variables.attackUserChar(enemyAttack);
+
+    //ctx.point(width-20, 2, chosenCharacter.duration + ' VS ' + enemyCharacter.duration);        
+    ctx.point(width-20, 3, userAttack + ' VS ' + enemyAttack);
+
     var defenderHealth,
         defender;
     if(attacker == chosenCharacter){
@@ -151,9 +172,10 @@ exports.chiefsBattle = function(attacker){
 
 exports.attackEnemyChief = function(attacker, chief, chiefHealth, chiefOn){
     if(setCardSpecialities.isCardImmobiled(attacker.card) ||
-       attacker.isDisabled)
+       attacker.isDisabled || (chiefOn == 'userPlayer' && playerTaunts>0) || 
+       (chiefOn == 'enemyCharacter' && enemyTaunts>0))
        return;
-    
+
     // write battle
     var writeStream = 
         fs.createWriteStream('battle_results.txt');
@@ -166,9 +188,9 @@ exports.attackEnemyChief = function(attacker, chief, chiefHealth, chiefOn){
     
     var cardOn;
     if(chiefOn == 'userPlayer')
-        cardOn = 'player';
-    else
         cardOn = 'enemy';
+    else
+        cardOn = 'player';
     
     setCardSpecialities.activateCardBoons(attacker, chiefHealth, chiefOn, 
                                           0, chief.canBlock);
@@ -209,19 +231,19 @@ exports.attackEnemyChief = function(attacker, chief, chiefHealth, chiefOn){
 
 function postChiefAttack(character){
    //decrease windfury/duration these thingies
+
+   character.duration-=1;
+   
     if(!character.hasWindfury){
             character.hasAttacked = true;
             
-             if(character.duration){
-                 character.duration-=1;
-                 
-                 if(!character.duration){
-                     character.attack = 0;
-                     earthShieldOn ='';
-                     flameAxeOn = '';
-                     frostBowOn = '';
-                     character.hasWindfury=0;
-                 }
+            if(!character.duration){
+                character.weapon = '';
+                character.attack = 0;
+                earthShieldOn ='';
+                flameAxeOn = '';
+                frostBowOn = '';
+                character.hasWindfury=0;
              }
              else
                  character.tempAttack = 0;  
@@ -292,7 +314,7 @@ function isBattlerDead(creature, fromPlayer){
     
     if(creature.card.defence <= 0 && fromPlayer){
         if(creature.card.isTaunt)
-            enemyTaunts-=1;
+            playerTaunts-=1;
         
         creature.card = undefined;
         
@@ -302,10 +324,11 @@ function isBattlerDead(creature, fromPlayer){
         
         enemySpawnedCards -= 1;
     }
-    
+
+    // from enemy
     else if(creature.card.defence <= 0){
         if(creature.card.isTaunt)
-            playerTaunts -= 1;
+            enemyTaunts -= 1;
         
         creature.card = undefined;
         

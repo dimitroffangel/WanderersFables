@@ -57,7 +57,8 @@ exports.upgradeSkills = function(character){
         character.spells.push({name:'Thor"s hammer',cost:0,lastTimeCast:0,cooldown:0,
                                description:'Recieve 3/5 weapon which grants windfury'});
         
-        /* when traps are casted they are pushed in to a vector, when the user character is             attacked they are unleashed MUHHAHHAH AND ALL WILL SUFFFFFFFFFFFFFFFFFFFFFFER
+        /* when traps are casted they are pushed in to a vector, when the user character is             
+        attacked they are unleashed MUHHAHHAH AND ALL WILL SUFFFFFFFFFFFFFFFFFFFFFFER
         */
         character.spells.push({name:'Medussa"s trap',cost:0, lastTimeCast:0,cooldown:0,
                                description:'If your hero is attacked disable the field from'+                                   'which the enemy has attacked', isTrap:true});

@@ -139,10 +139,15 @@
     inputFriendID = undefined,
     isInputWritten = false, 
     inputMessage = '',
+    serverUpdateCounter = 0,
+    updateUniqCounter = 0,  
     hasChanged = false,
     battleDone = [];
 
 exports.attackEnemyChar = function(damage){
+    if(!damage)
+        return;
+
     enemyArmor-=damage;
     if(enemyArmor < 0){
         enemyPlayerHealth+= enemyArmor;
@@ -151,6 +156,9 @@ exports.attackEnemyChar = function(damage){
 }
 
 exports.attackUserChar = function(damage){
+    if(!damage)
+        return;
+
     playerArmor-=damage;    
     if(playerArmor < 0){
         playerHealth+= playerArmor;

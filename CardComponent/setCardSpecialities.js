@@ -110,9 +110,11 @@ exports.activateCardBoons = function(attackingField,defendingFieldHealth,defendi
 
 exports.setCardSpecials = function(card, summonFrom){
    
-    if(card.name == 'Mama')
+    if(card.name == 'Dummy')
+        setDummy(card, summonFrom);
+    else if(card.name == 'Mama')
         setMama(card, summonFrom);
-    
+
     if(card.name == 'Centaur Emissary')
         setCentaurEmissary(card);
     else if(card.name == 'Stone Dwarf')
@@ -128,7 +130,7 @@ exports.setCardSpecials = function(card, summonFrom){
     else if(card.name == 'Captain Tervelan')
         setCaptainTervelan(card, summonFrom);
     else if(card.name == 'Arx')
-        setArx(card);
+        setArx(card, summonFrom);
     else if(card.name == 'Gort')
         setGort(card);
     else if(card.name == 'Veteran Dragon Tribe Grawl Hunter')
@@ -158,13 +160,13 @@ exports.setCardSpecials = function(card, summonFrom){
     else if(card.name == 'Brutish Ettin Chieftain')
         setBEC(card, summonFrom);
     else if(card.name == 'Ert and Burt')
-        setErt_Burt(card);
+        setErt_Burt(card, summonFrom);
     else if(card.name == 'Graw Trapper')
         setGrawTrapper(card, summonFrom);
     else if(card.name == 'Tomtom')
         setTomTom(card, summonFrom);
     else if(card.name == 'Carrion Sculpture')
-        setCarrionSculpture(card);
+        setCarrionSculpture(card, summonFrom);
     else if(card.name == 'Giant Ettin')
         setGiantEttin(card, summonFrom);
     else if(card.name == 'Arcanist Dremus')
@@ -178,7 +180,7 @@ exports.setCardSpecials = function(card, summonFrom){
     else if(card.name == 'Ettin Leader')
         setEttinLeader(card, summonFrom);
     else if(card.name == 'Tamini Warrior')
-        setTaminiWarrior(card);
+        setTaminiWarrior(card, summonFrom);
     else if(card.name == 'Zommoros')
         setZommoros(card, summonFrom);
     else if(card.name == 'Crazed Ettin')
@@ -192,7 +194,7 @@ exports.setCardSpecials = function(card, summonFrom){
     else if(card.name == 'War Minister Shokov')
         setWarMinister(card, summonFrom);
     else if(card.name == 'Wall Segment')
-        setWallSegment(card);
+        setWallSegment(card, summonFrom);
     else if(card.name == 'Dredge Builder')
         setDredgeBuilder(card);
     else if(card.name == 'Ancient Creature')
@@ -203,6 +205,10 @@ exports.setCardSpecials = function(card, summonFrom){
         setPriestDwayna(card,summonFrom);
     else if(card.name == 'The Destroyer of Worlds')
         setDestroyer_Worlds(card, summonFrom);
+    else if(card.name == 'Viggo')
+        setViggo(card, summonFrom);
+    else if(card.name == 'Vassar')
+        setVassar(card, summonFrom);
 }
 
 function setMama(card, summonFrom){
@@ -211,9 +217,9 @@ function setMama(card, summonFrom){
         
       //  card.canBlock = true;
         card.canKnockdown = true;
-        
+
         if(card.canKnockdown && 
-            summonFrom == 'enemy'){
+            summonFrom == 'enemy' && currentModeState == 'Training'){
              boons.botKnockdownsCard();
              card.isInitialized = true;
         }
@@ -223,6 +229,19 @@ function setMama(card, summonFrom){
             isKnockingCard = true;
             changingFieldIndex = cursorIndex;       
         }
+    }
+}
+
+function setDummy(card, summonFrom){
+
+    if(!card.isInitialized){
+        card.isInitialized = true;
+        card.isTaunt = true;
+
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
 }
 
@@ -267,6 +286,7 @@ function setVeteranFleshreaver(card, summonFrom){
             cardIndex = findCard('Veteran Fleshreaver');
             
         boons.spawningCard(cardIndex, summonFrom);
+        uniqCardsActions.push({name:'Veteran Fleshreaver'});
     }
 }
 
@@ -292,14 +312,20 @@ function setCaptainTervelan(card, summonFrom){
             length = enemyFields.length,
             cardIndex = findCard('Bandit');
         
-            boons.spawningCard(cardIndex, summonFrom);
+        boons.spawningCard(cardIndex, summonFrom);
+        uniqCardsActions.push({name:'Captain Tervelan'});        
     }
 }
 
-function setArx(card){
+function setArx(card, summonFrom){
     if(!card.isInitialized){
         card.isInitialized = true;
         card.isTaunt = true;
+
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
 }
 
@@ -349,32 +375,47 @@ function setKamikazeto(card){
     else if(turnCount != card.turnSpawn){
         var i,
             length = enemyFields.length,
+            enemyCards = 0,
+            playerCards = 0,
             cardsOnField = [];
         
         for(i = 0; i < length; i+=1){
             var currentField = enemyFields[i]; 
-            if(currentField.card)
+            if(currentField.card){
                 cardsOnField.push(currentField);
+                enemyCards++;
+            }
         }
         
         for(i = 0; i < length; i+=1){
             var currentField = playerFields[i];
-            if(currentField.card)
+            if(currentField.card){
                 cardsOnField.push(currentField);
+                playerCards++;
+            }
         }
-        
+        var damage = 2;
+
         // the length is + 2 for the userCharacter and the enemyCharacter
         // cardsOnField[itsLength] = chosenCharacter 
         // cardsOnField[itsLength+ 1] = enemyCharacter 
         var randomIndex = Math.round(Math.random() * (cardsOnField.length + 1));
         if(randomIndex < cardsOnField.length){
-            cardsOnField[randomIndex].card.defence -= 2;
-            checkCardState(cardsOnField[randomIndex].card);
+            if(randomIndex <= enemyCards)
+                summonFrom = 'enemy';
+            else
+                summonFrom = 'player';
+
+            cardsOnField[randomIndex].card.defence -= damage;
+            checkCardState(cardsOnField[randomIndex], summonFrom);
         }
+        
         else if(randomIndex == cardsOnField.length)
-            variables.attackUserChar(2);
+            variables.attackUserChar(damage);
         else if(randomIndex == cardsOnField.length + 1)
-            variables.attackEnemyChar(2);
+            variables.attackEnemyChar(damage);
+        
+        uniqCardsActions.push({name:'Kamikazeto99', attackedIndex:randomIndex});
     }
 }
 
@@ -398,26 +439,28 @@ function setShamanCaledon(card ,summonFrom){
     */
     var i,
         length = playerFields.length,
-        playersFields = [],
+        healableFields = [],
         fieldsWithCards = [],
         healAmount = 2;
     if(summonFrom == 'enemy')
-        playersFields = enemyFields;
+        healableFields = enemyFields;
     else
-        playersFields = playerFields;
+        healableFields = playerFields;
     
     for(i= 0; i < length;i+=1){
-        if(playersFields[i].card)
+        if(healableFields[i].card)
             fieldsWithCards.push(i);
     }
     
     var fieldIndex = Math.round(Math.random() * (fieldsWithCards.length-1));
     // card to be healed
-    var healingCard = playersFields[fieldsWithCards[fieldIndex]].card; 
+    var healingCard = healableFields[fieldsWithCards[fieldIndex]].card; 
     
     healingCard.defence+= healAmount;
     if(healingCard.defence > healingCard.initialHealth)
         healingCard.defence = healingCard.initialHealth;
+
+    uniqCardsActions.push({name:'Shaman of Caledon', healedIndex: fieldIndex});
 }
 
 function setVyacheslav(card){
@@ -559,10 +602,15 @@ function setBEC(card, summonFrom){
     }   
 }
 
-function setErt_Burt(card){
+function setErt_Burt(card, summonFrom){
     if(!card.isInitialized){
         card.isInitialized = true;
         card.isTaunt = true;
+
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
 }
 
@@ -589,6 +637,12 @@ function setCarrionSculpture(card, summonFrom){
        card.isInitialized = true;
        card.isTaunt = true;
        card.hasDeathrattle = true;
+
+       
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
     
     else if(card.hasDeathrattle){
@@ -597,10 +651,12 @@ function setCarrionSculpture(card, summonFrom){
         var cardIndex = findCard('Carrion Weaver'),
             onFieldIndex = boons.spawningCard(cardIndex, summonFrom);
 
+        ctx.point(width-20, 3, summonFrom + ' WHat');
+
         if(summonFrom == 'enemy')
-            setCarrionWeaver(enemyFields[onFieldIndex].card);
+            setCarrionWeaver(enemyFields[onFieldIndex].card, summonFrom);
         else
-            setCarrionWeaver(playerFields[onFieldIndex].card);
+            setCarrionWeaver(playerFields[onFieldIndex].card, summonFrom);
     }
 }
 
@@ -681,10 +737,16 @@ function setEttinLeader(card, summonFrom){
         boons.spawningCard(cardIndex, summonFrom);
 }
 
-function setTaminiWarrior(card){
+function setTaminiWarrior(card, summonFrom){
     if(card.isInitialized){
         card.isInitialized = true;
         card.isTaunt = true;
+
+        
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
 }
 
@@ -692,6 +754,12 @@ function setZommoros(card, summonFrom){
     if(!card.isInitialized){
         card.isInitialized = true;
         card.isTaunt = true;
+
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
+
         card.canWindfury = 2;
         card.canBlock = 1;
         
@@ -765,10 +833,15 @@ function setWarMinister(card, summonFrom){
     }
 }
 
-function setWallSegment(card){
+function setWallSegment(card, summonFrom){
     if(!card.isInitialized){
         card.isInitialized = true;
         card.isTaunt = true;
+        
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
 }
 
@@ -817,10 +890,16 @@ function setPriestDwayna(card, summonFrom){
         card.isInitialized = true;
 }
 
-function setCarrionWeaver(card){
+function setCarrionWeaver(card, summonFrom){
     if(!card.isInitialized){
         card.isInitialized = true;
         card.isTaunt = true;
+
+        
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
     }
 }  
 
@@ -841,6 +920,28 @@ function setDestroyer_Worlds(card, summonFrom){
     else(summonFrom == 'player')
         bleedingTargets.push({name:'userCharacter', positions: 0,
                               power: card.bleedValue, forTurns:3});
+}
+
+function setViggo(card, summonFrom){
+    if(!card.isInitialized){
+        card.isInitialized = true;
+        card.isTaunt = true;
+        card.recieveSpell = false;        
+
+        if(summonFrom=='player')
+            playerTaunts++;
+        else
+            enemyTaunts++;
+
+    }
+}
+
+function setVassar(card, summonFrom){
+    if(!card.isInitialized){
+        card.isInitialized = true;
+        card.recieveSpell = false;        
+        
+    }
 }
 
 function hp_Destroyer_Worlds(card){
@@ -870,22 +971,22 @@ function hp_Destroyer_Worlds(card){
         immobileTargets.push({card:summonedCards[randomIndex].card, onTurn: turnCount});
 }
 
-function checkCardState(card, from){
-    if(card.defence > 0)
+function checkCardState(field, from){
+    if(field.card.defence > 0)
         return;
     
-    if(card.isTaunt && from == 'enemy'){
+    if(field.card.isTaunt && from == 'enemy'){
         enemyTaunts-=1;
         enemySpawnedCards -= 1;
     }
-    else if(card.isTaunt && from == 'player'){
+    else if(field.card.isTaunt && from == 'player'){
         playerTaunts-=1;
         playerSpawnedCards-=1;
     }
         
-    card.card = undefined;
+    field.card = undefined;
     
     ctx.fg(255, 0, 0);
-    ctx.box(card.x, card.y, cardWidth, cardHeight);
+    ctx.box(field.x, field.y, cardWidth, cardHeight);
     ctx.cursor.restore();    
 }

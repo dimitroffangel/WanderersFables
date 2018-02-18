@@ -42,7 +42,8 @@ exports.Card = function(mana, attack, defence, special, name){
 // with every new line the mana cost raises
 
 exports.allCards = [
-        new this.Card(0, 2, 101, '', 'Mama'), 
+        new this.Card(0, 2, 101, 'Taunt, can knockdown', 'Mama'),
+        new this.Card(0, 2, 101, 'Taunt', 'Dummy'), 
         new this.Card(1, 1, 2, 'Vulnerable', 'Centaur Emissary'),
     
         new this.Card(2, 2, 2, 'Bleeding and Vulnerable', 'Stone Dwarf'),
@@ -60,12 +61,12 @@ exports.allCards = [
         new this.Card(4, 4, 4, 'Taunt', 'Arx'),
         new this.Card(4, 1, 4, 'If Gort drops bellow 2 He becomes 5/5', 'Gort'),
         new this.Card(4, 4, 4, 'Bleeding', 'Modniir High Sage'),
-        new this.Card(4, 2, 5, 'Blind, Vulnerable, At the end of your turn throw                       a bomb, dealing 2 damage, on random target', 'Kamikazeto99'),
+        new this.Card(4, 2, 5, 'Blind, Vulnerable, At the end of your turn throw a bomb, dealing 2 damage, on random target', 'Kamikazeto99'),
         new this.Card(4, 4, 3, 'Battlecry: Each enemy dredge submits to your command',
                       'Rebel Alexsei'),
         new this.Card(4,2,4,'At the end of your turn heal randomly a card or your character', 
                       'Shaman of Caledon'),
-        new this.Card(4, 3, 3, 'If Ogden Stonehealer is killed Vyacheslav                                 becomes 6/7', 'Vyacheslav'), 
+        new this.Card(4, 3, 3, 'If Ogden Stonehealer is killed Vyacheslav becomes 6/7', 'Vyacheslav'), 
         new this.Card(4, 3, 3, 'Battlecry: Give a minion +2/+2', 'Karamoleoff'),
         new this.Card(4, 2, 3, 'Battlecry: Shadowstep a random enemy field;',
                       'Pickpocket Master'),
@@ -108,11 +109,10 @@ exports.allCards = [
                       'War Minister Shokov'),
         new this.Card(10, 10 ,10,'Taunt, Cannot be targeted from spells, cannot attack',
                       'Viggo'),
-        new this.Card(10, 7, 7, 'Enemy cannot cast a spell, at the end of each turn inflict bleeding to the enemy hero and random vulnerable to enemy minion', 'Vassar'),
-        new this.Card(10,7,7,'When a enemy card is summons a minion steal his speciality',
-                      'Kasha Blackblood'),
+        new this.Card(10, 7, 7, 'Enemy cannot cast a spell, at the end of each turn inflict bleeding to the enemy hero and random vulnerable to enemy minion', 
+        'Vassar'),
+        new this.Card(10,7,7,'When a enemy card is summons a minion steal his speciality','Kasha Blackblood'),
 
-    
         //dispersable cards (cards that are summoned but not by a players)
         new this.Card(0, 0, 3, 'Taunt', 'Wall Segment'),
         new this.Card(1, 2, 1, '', 'Falcon Outlaw'),

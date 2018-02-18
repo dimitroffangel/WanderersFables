@@ -149,7 +149,6 @@ function gameMenuLogic(key){
     if(isUserWriting)
         return;
     
-    ctx.point(width - 20, 3, playerTaunts + 'PTOF');
     // moving the cursor to another mode
     if(currentModeState == 'Login Screen' && loggedUsername == '')
         loginScreen.loginMenu(key);
