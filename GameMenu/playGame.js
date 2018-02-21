@@ -77,6 +77,13 @@ exports.vsPlayerEachFrame = function(){
     // draw Player Info
     ctx.point(5, cardFieldInitY + cardHeight + 1, 'Your mana: ' + playerMana + '| ' +
               '| '+'Name: ' + chosenCharacter.name + '|' + 'Health: ' + playerHealth + '| '); 
+
+    socket.on('enemySurrendered', function(data){
+        playerWon();
+        variables.resetPlayGameVariables();
+        socket.emit('recievedSurrender', {gameOrder:gameOrder, playerIndex: oldPlayerIndex});
+    });
+
 }
 
 function enemySentData(){
@@ -286,49 +293,55 @@ exports.loadAfterGame = function(key){
     }
 }
 
-exports.isGameOver = function(){
-    
-    if(!isGameFinished && enemyPlayerHealth <= 0){
-        var currentCharacter = createdCharacters[indexAtCharacter];
+function playerWon(){
+    var currentCharacter = createdCharacters[indexAtCharacter];
         
-        ctx.clear();
-        currentCharacter.exp += 1350; // %0.125 from foe's level
-        experience.checkLevel();
-        userGold += 60;
-        wonRowGames +=1;
+    ctx.clear();
+    currentCharacter.exp += 1350; // %0.125 from foe's level
+    experience.checkLevel();
+    userGold += 60;
+    wonRowGames +=1;
 
-        ctx.point(0, 1, 'You have won, Game won in a row: ' + wonRowGames);
-        ctx.point(0, 2, 'Current exp: ' + currentCharacter.exp);
-       // ctx.point(0, 3, 'Needed for next level: ' + (experience.levels[currentCharacter.level - 1].maxExp -                                  currentCharacter.exp));
-        ctx.point(0, 5, 'Money owned: ' + userGold);
-        ctx.point(0, 4, 'Press enter to go back to the Game Menu');
-                
-        isBoardDrawn = false;
-        isGameFinished = true;
+    ctx.point(0, 1, 'You have won, Game won in a row: ' + wonRowGames);
+    ctx.point(0, 2, 'Current exp: ' + currentCharacter.exp);
+   // ctx.point(0, 3, 'Needed for next level: ' + (experience.levels[currentCharacter.level - 1].maxExp -                                  currentCharacter.exp));
+    ctx.point(0, 5, 'Money owned: ' + userGold);
+    ctx.point(0, 4, 'Press enter to go back to the Game Menu');
+            
+    isBoardDrawn = false;
+    isGameFinished = true;
+}
+
+function enemyWon(){
+    var currentCharacter = createdCharacters[indexAtCharacter];
+        
+    ctx.clear();
+    currentCharacter.exp += 335;
+    experience.checkLevel();
+    userGold += 15;
+    wonRowGames = 0;
+    
+    ctx.point(0, 1, 'You have lost');
+    ctx.point(0, 2, 'Current exp: ' + currentCharacter.exp);
+  //  ctx.point(0, 3, 'Needed for next level: ' + (experience.levels[currentCharacter.level - 1].maxExp -                                  currentCharacter.exp));
+    ctx.point(0, 5, 'Money owned: ' + userGold);
+    ctx.point(0, 4, 'Press enter to go back to the Game Menu');
+            
+    isBoardDrawn = false;
+    isGameFinished = true;
+}
+
+exports.isGameOver = function(){
+    if(!isGameFinished && enemyPlayerHealth <= 0){ // enemy health has been depleted
+        playerWon();
         return true;
     }
     
     // if player's health is zero you have lost;
     if(!isGameFinished && playerHealth <= 0){
-        var currentCharacter = createdCharacters[indexAtCharacter];
-        
-        ctx.clear();
-        currentCharacter.exp += 335;
-        experience.checkLevel();
-        userGold += 15;
-        wonRowGames = 0;
-        
-        ctx.point(0, 1, 'You have lost');
-        ctx.point(0, 2, 'Current exp: ' + currentCharacter.exp);
-      //  ctx.point(0, 3, 'Needed for next level: ' +                                                       (experience.levels[currentCharacter.level - 1].maxExp -                                  currentCharacter.exp));
-        ctx.point(0, 5, 'Money owned: ' + userGold);
-        ctx.point(0, 4, 'Press enter to go back to the Game Menu');
-                
-        isBoardDrawn = false;
-        isGameFinished = true;
+        enemyWon();
         return true;
     }
-    
     
     return false;
 }

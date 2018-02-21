@@ -111,7 +111,9 @@ function determineAfterAction(key){
         // => the game has started and he the player has quit
         if(currentModeState == 'Play Game' || currentModeState == 'Training' && 
             escapeClicksCounter == 2){
-            afterPlayGame();
+
+            socket.emit('surrender', {gameOrder:gameOrder, playerIndex:playerIndex});
+            variables.resetPlayGameVariables();
             gameMenu.loadMenu();
             
             currentModeState = 'Game Menu';
@@ -198,7 +200,8 @@ function gameMenuLogic(key){
                         socket.on('placement', function(data){
                             gameOrder = data.gameOrder;
                             playerIndex = data.player;   
-                            
+                            oldPlayerIndex = data.player;
+
                             if(playerIndex == 1)
                                 hasPlayerTurnEnded = true;
                         });
@@ -242,76 +245,6 @@ function gameMenuLogic(key){
         ctx.cursor.on();
         process.stdin.pause();
     }
-}
-
-function afterPlayGame(){
-        wonRowGames = 0;
-        isBoardDrawn = false;
-        isShowingInfo = false; 
-        isInformationDrawn = false; 
-        isChoosingSpell = false;
-        isCastingSpell = false; 
-        indexOnSpell = 0;
-        hasPlayerTurnEnded = false;
-        hasEnemyTurnEnded = false;
-        markedField = undefined;
-        removeFieldAt = NaN;
-        initialHealth = 42;
-        enemyPlayerHealth = initialHealth;
-        playerHealth = initialHealth;
-        mana = 1;
-        turnCount = 1;
-        playerMana = 10;
-        enemyMana = mana; 
-        areCharactersDrawn = false;
-        indexAtCharacter = 0;
-        chosenCharacter = undefined;
-        firstPlayer = undefined;
-        lastKeyEntered = ' ';
-        userInput = ' ';
-        enterPressed = 0; 
-        isGameFinished = false;
-        hasChosenDifficulty = false;
-        indexOnDifficulty = 0;
-        hasChosenOpponentDeck = false;
-        indexOnBotDeck = 0;
-        hasChosenBotClass = false;
-        indexOnBotClass = 0;
-        handPriority = [];
-        attackPriority = [];
-        botDeck = [];
-        userChosenDeck = undefined;
-        battleDone = [];
-        
-        // card variables
-        playerFields = []; 
-        playerSpawnedCards = 0;
-        enemyFields = [];
-        enemySpawnedCards = 0;
-        enemyTaunts = 0;
-        playerTaunts = 0;
-        attackedFromFields = []; 
-        playerHand = [];
-        playerBonusHand = [];  
-        enemyHand = [];
-        showingPlayerHand = 'main';
-        cursorField = 'hand'; 
-        cursorIndex = 0;
-        markedCardCursor = 0;
-        spawningCard = undefined;
-        infoOnCard = undefined; 
-        bleedingTargets = [];
-        vulnerableTargets = [];
-        immobileTargets = [];
-        isShatteringField = false;
-        isKnockingCard = false;
-        changingFieldIndex = undefined; 
-        isChangingMobStats = false;
-        isSwappingMinionStats = false;
-        blockTargets = [];
-        uniqCards = [];
-        summonnedUniqCards = [];
-        isOgdenDead =  false;
 }
 
 // Mouse input

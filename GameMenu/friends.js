@@ -175,11 +175,10 @@ function printFriendMode(key){
     
     else if(friendChosenOption == 'Send friend request'){
         if(key.name != 'return'){
-            console.log(countera99);
-                if(!inputFriendRequest)
-                    variables.enterText('Enter player"s name and his id:', false);
-                else
-                    return;
+              if(!inputFriendRequest)
+                variables.enterText('Enter player"s name and his id:', false);
+              else
+                return;
         }
     }
 

@@ -1,9 +1,4 @@
-Turn 2
-Turn 3
-Turn 4
-Turn 5
-Turn 6
-Turn 7
-Turn 8
-	Shaman of Caledon( 2 4 x: 1 ) VS
-Priest of Dwayna( 6 6 x: 1|
+Spawning: Veteran Fleshreaver on 1 Mana Left: 8
+Spawning: Centaur Emissary on 13.859 Mana Left: 7
+Spawning: Vyacheslav on 26.718 Mana Left: 3
+Spawning: Ettin on 39.577000000000005 Mana Left: 1
